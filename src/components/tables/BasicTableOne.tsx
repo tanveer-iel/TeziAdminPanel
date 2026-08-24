@@ -1,0 +1,343 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import Badge from "../ui/badge/Badge";
+import supabase from "../../../SupabaseConfig";
+
+interface Profile {
+  id: number | string;         
+  email: string;
+  username: string;
+  account: boolean;
+  block: boolean;
+  full_name: string;
+}
+
+interface ClientCode {
+  id: number;
+  cliendCode: string;     // Note: typo in your column name
+  Password: string;
+  userId: string;         // This is UUID
+  created_at: string;
+}
+
+export default function BasicTableOne() {
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<number | string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+
+        // Fetch profiles
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, email, username, account, block, full_name, status")
+          .order("id", { ascending: true });
+
+        if (profilesError) throw profilesError;
+
+        // Exclude admin
+        const filteredProfiles = (profilesData || []).filter(
+          (p) => p.email !== "iel@admin.com"
+        );
+
+        // Fetch all client codes
+        const { data: clientCodesData, error: codesError } = await supabase
+          .from("ClientCode")
+          .select("*")
+          .order("id", { ascending: true });
+
+        if (codesError) throw codesError;
+
+        // Create a Map: userId (UUID) → list of client codes
+        const clientCodeMap = new Map<string, string[]>();
+
+        (clientCodesData || []).forEach((code: ClientCode) => {
+          if (!clientCodeMap.has(code.userId)) {
+            clientCodeMap.set(code.userId, []);
+          }
+          clientCodeMap.get(code.userId)!.push(code.cliendCode);
+        });
+
+        // Attach client codes to each profile
+        // Note: You may need to convert profile.id to string if types don't match
+        const enrichedProfiles = filteredProfiles.map((profile) => {
+          const profileIdStr = String(profile.id); // Convert to string for safety
+
+          // If your profiles.id is actually UUID, use profile.id directly instead of String(profile.id)
+          const userClientCodes = clientCodeMap.get(profileIdStr) || [];
+
+          return {
+            ...profile,
+            clientCodes: userClientCodes,        // array of strings e.g. ["10020", "IPP2"]
+          };
+        });
+
+        setProfiles(enrichedProfiles as any);   // Temporary 'any' — better to extend interface
+      } catch (err: any) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // Toggle block function remains the same
+  const toggleBlockStatus = async (profile: any) => {
+    const newBlockStatus = !profile.block;
+
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.id === profile.id ? { ...p, block: newBlockStatus } : p
+      )
+    );
+
+    setUpdatingId(profile.id);
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ block: newBlockStatus })
+        .eq("id", profile.id);
+
+      if (error) throw error;
+    } catch (err) {
+      console.error("Error updating block status:", err);
+
+      // Revert on error
+      setProfiles((prev) =>
+        prev.map((p) =>
+          p.id === profile.id ? { ...p, block: profile.block } : p
+        )
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+
+ const toggleAccountStatus = async (profile: any) => {
+  const newAccountStatus = !profile.account;
+
+  console.log(
+    `Toggling account status for user ${profile.id} to ${newAccountStatus}`
+  );
+
+  // Optimistic UI update
+  setProfiles((prev: any) =>
+    prev.map((p: any) =>
+      p.id === profile.id
+        ? {
+            ...p,
+            account: newAccountStatus,
+            clientCodes: newAccountStatus ? p.clientCodes : [],
+          }
+        : p
+    )
+  );
+
+  setUpdatingId(profile.id);
+
+  try {
+    console.log("Updating profile...", {
+      id: profile.id,
+      account: newAccountStatus,
+    });
+
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .update({
+        account: newAccountStatus,
+        status: "unlinked",
+      })
+      .eq("id", profile.id)
+      .select();
+
+    console.log("Profile update response:", profileData);
+
+    if (profileError) {
+      console.error("Profile update error:", profileError);
+      throw profileError;
+    }
+
+  const { data, error } = await supabase.functions.invoke(
+  "update-user-metadata",
+  {
+    body: {
+      userId: profile.id,
+      status: "unlinked",
+    },
+  }
+);
+
+console.log(data, error);
+    // If account is being unlinked, remove all client codes
+    if (!newAccountStatus) {
+      console.log("Deleting ClientCode records...");
+      console.log("Searching with userId:", String(profile.id));
+
+      // Check if records exist first
+      const { data: existingCodes, error: fetchError } = await supabase
+        .from("ClientCode")
+        .select("*")
+        .eq("userId", String(profile.id));
+
+      console.log("Existing ClientCode records:", existingCodes);
+
+      if (fetchError) {
+        console.error("Fetch ClientCode error:", fetchError);
+      }
+
+      const { data: deletedData, error: deleteError } = await supabase
+        .from("ClientCode")
+        .delete()
+        .eq("userId", String(profile.id))
+        .select();
+
+      console.log("Deleted ClientCode records:", deletedData);
+
+      if (deleteError) {
+        console.error("Delete ClientCode error:", deleteError);
+        throw deleteError;
+      }
+
+      console.log("ClientCode deletion completed successfully.");
+    }
+  } catch (err) {
+    console.error("Toggle account error:", err);
+
+    // Revert on error
+    setProfiles((prev: any) =>
+      prev.map((p: any) => (p.id === profile.id ? profile : p))
+    );
+  } finally {
+    setUpdatingId(null);
+  }
+};
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading profiles...</div>;
+  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
+  if (profiles.length === 0) return <div className="p-8 text-center text-gray-500">No users found.</div>;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <Table>
+        <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+          <TableRow>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+              User
+            </TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+              Email
+            </TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+              Account Status
+            </TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+              User Status
+            </TableCell>
+            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+              Client Codes
+            </TableCell>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+          {profiles.map((profile: any) => (
+            <TableRow key={profile.id}>
+              {/* User */}
+              <TableCell className="px-5 py-4 text-start">
+                <div>
+                  <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                    {profile.full_name || "N/A"}
+                  </span>
+                  <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+                    User ID: {profile.id}
+                  </span>
+                </div>
+              </TableCell>
+
+              {/* Email */}
+              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                {profile.email}
+              </TableCell>
+
+              {/* Account Status */}
+              {/* <TableCell className="px-4 py-3 text-start">
+                <Badge size="sm" color={profile.account ? "success" : "error"}>
+                  {profile.account ? "Linked" : "Unlinked"}
+                </Badge>
+              </TableCell> */}
+              <TableCell className="px-4 py-3 text-start">
+  <button
+    onClick={() => toggleAccountStatus(profile)}
+    disabled={updatingId === profile.id || profile.account === false} // Disable if updating or already unlinked  
+    className={`focus:outline-none transition-all ${
+      updatingId === profile.id
+        ? "opacity-50 cursor-not-allowed"
+        : "cursor-pointer hover:opacity-80"
+    }`}
+  >
+    <Badge size="sm" color={profile.account ? "success" : "error"}>
+      {updatingId === profile.id
+        ? "Updating..."
+        : profile.account
+        ? "Linked"
+        : "Unlinked"}
+    </Badge>
+  </button>
+</TableCell>
+
+              {/* User Status */}
+              <TableCell className="px-4 py-3 text-start">
+                <button
+                  onClick={() => toggleBlockStatus(profile)}
+                  disabled={updatingId === profile.id}
+                  className={`focus:outline-none transition-all ${
+                    updatingId === profile.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-80"
+                  }`}
+                >
+                  <Badge size="sm" color={profile.block ? "error" : "success"}>
+                    {updatingId === profile.id
+                      ? "Updating..."
+                      : profile.block
+                      ? "User Blocked"
+                      : "Active User"}
+                  </Badge>
+                </button>
+              </TableCell>
+
+              {/* New Column: Client Codes */}
+              <TableCell className="px-4 py-3 text-start">
+                {profile.clientCodes && profile.clientCodes.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {profile.clientCodes.map((code: string, idx: number) => (
+                      <Badge key={idx} size="sm" color="info">
+                        {code}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-gray-400 text-sm">No codes</span>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
