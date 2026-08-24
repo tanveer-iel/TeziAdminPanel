@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { Modal } from "../ui/modal";
 import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import Label from "../form/Label";
-import TextArea from "../form/input/TextArea";
 import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 /* OLD TAB CONSTANT REMOVED (NOT NEEDED) */

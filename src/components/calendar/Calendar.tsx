@@ -29,6 +29,7 @@ const Calendar: React.FC = () => {
   const [eventLevel, setEventLevel] = useState("");
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const calendarRef = useRef<FullCalendar>(null);
+  const nextEventId = useRef(3);
   const { isOpen, openModal, closeModal } = useModal();
 
   const calendarsEvents = {
@@ -40,6 +41,7 @@ const Calendar: React.FC = () => {
 
   useEffect(() => {
     // Initialize with some events
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- seed data depends on the current date (an impure value), which must be read after mount, not during render
     setEvents([
       {
         id: "1",
@@ -98,8 +100,9 @@ const Calendar: React.FC = () => {
       );
     } else {
       // Add new event
+      nextEventId.current += 1;
       const newEvent: CalendarEvent = {
-        id: Date.now().toString(),
+        id: nextEventId.current.toString(),
         title: eventTitle,
         start: eventStartDate,
         end: eventEndDate,

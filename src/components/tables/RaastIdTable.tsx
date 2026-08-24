@@ -30,10 +30,7 @@ interface ModalProps {
   value: boolean;
 }
 
-export default function RaastIdTable({
-  value,
-  setValue,
-}: ModalProps) {
+export default function RaastIdTable({ value }: ModalProps) {
   const [raastData, setRaastData] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

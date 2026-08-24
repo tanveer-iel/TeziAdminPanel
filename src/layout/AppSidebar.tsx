@@ -104,6 +104,7 @@ const AppSidebar: React.FC = () => {
     });
 
     if (!submenuMatched) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- this only clears already-open submenu UI state in response to a route change, not derivable during render
       setOpenSubmenu(null);
     }
   }, [pathname, isActive]);

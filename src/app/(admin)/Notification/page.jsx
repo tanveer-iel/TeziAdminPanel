@@ -1,7 +1,6 @@
 "use client"
 import { useState } from "react";
 import NotificationTable from "../../../components/tables/NotificationTable";
-import { Metadata } from "next";
 import React from "react";
 import FormInModal from "../../../components/example/ModalExample/FormInModal";
 export default function Notification() {

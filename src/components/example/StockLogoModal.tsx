@@ -73,15 +73,16 @@ export default function StockLogoModal({ setValue }: StockLogoModalProps) {
 
       setValue((prev) => !prev); // Refresh the table
       handleClose();
-    } catch (err: any) {
+    } catch (err) {
       console.error("Submit Error:", err);
 
       let errorMessage = "Failed to add stock logo. Please try again.";
 
-      if (err?.message) {
-        errorMessage = err.message;
-      } else if (err?.error?.message) {
-        errorMessage = err.error.message;
+      const errObj = err as { message?: string; error?: { message?: string } } | null;
+      if (errObj?.message) {
+        errorMessage = errObj.message;
+      } else if (errObj?.error?.message) {
+        errorMessage = errObj.error.message;
       }
 
       // Helpful message if column name is wrong

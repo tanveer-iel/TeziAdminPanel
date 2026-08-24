@@ -735,7 +735,7 @@ Positive industry outlook`}
             {selectedResearch?.document_url && !editPdf && (
               <p className="mt-1.5 text-[12px] text-gray-400">
                 Existing PDF will remain unchanged if you
-                don't select a new file.
+                don&apos;t select a new file.
               </p>
             )}
 

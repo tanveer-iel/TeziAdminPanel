@@ -56,7 +56,7 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
         if (error) throw error;
 
         setLogosData(data || []);
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error fetching stock logos:", err);
         setError("Failed to load stock logos. Please try again later.");
       } finally {
@@ -132,7 +132,7 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
       toast.success("Stock logo updated successfully");
       setIsEditOpen(false);
       setValue((prev) => !prev); // Trigger re-fetch in parent
-    } catch (err: any) {
+    } catch (err) {
       console.error("Update error:", err);
       toast.error("Failed to update stock logo");
     }

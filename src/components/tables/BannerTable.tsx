@@ -39,7 +39,6 @@ export default function BannerTable({ value, setValue }: ModalProps) {
 
   const [editDesc, setEditDesc] = useState("");
   const [editLink, setEditLink] = useState("");
-  const [editImage, setEditImage] = useState<File | null>(null);
 
   // Fetch marketing_banner data
   useEffect(() => {
@@ -69,7 +68,6 @@ export default function BannerTable({ value, setValue }: ModalProps) {
     setSelectedBanner(banner);
     setEditDesc(banner.des);
     setEditLink(banner.link);
-    setEditImage(null);
     setIsEditOpen(true);
   };
 

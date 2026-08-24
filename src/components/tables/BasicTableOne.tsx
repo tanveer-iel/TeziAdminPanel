@@ -29,8 +29,12 @@ interface ClientCode {
   created_at: string;
 }
 
+interface ProfileWithCodes extends Profile {
+  clientCodes: string[];
+}
+
 export default function BasicTableOne() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<ProfileWithCodes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<number | string | null>(null);
@@ -85,8 +89,8 @@ export default function BasicTableOne() {
           };
         });
 
-        setProfiles(enrichedProfiles as any);   // Temporary 'any' — better to extend interface
-      } catch (err: any) {
+        setProfiles(enrichedProfiles as ProfileWithCodes[]);
+      } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load data. Please try again later.");
       } finally {
@@ -98,7 +102,7 @@ export default function BasicTableOne() {
   }, []);
 
   // Toggle block function remains the same
-  const toggleBlockStatus = async (profile: any) => {
+  const toggleBlockStatus = async (profile: Profile) => {
     const newBlockStatus = !profile.block;
 
     setProfiles((prev) =>
@@ -131,7 +135,7 @@ export default function BasicTableOne() {
   };
 
 
- const toggleAccountStatus = async (profile: any) => {
+ const toggleAccountStatus = async (profile: Profile) => {
   const newAccountStatus = !profile.account;
 
   console.log(
@@ -139,8 +143,8 @@ export default function BasicTableOne() {
   );
 
   // Optimistic UI update
-  setProfiles((prev: any) =>
-    prev.map((p: any) =>
+  setProfiles((prev) =>
+    prev.map((p) =>
       p.id === profile.id
         ? {
             ...p,
@@ -222,8 +226,8 @@ console.log(data, error);
     console.error("Toggle account error:", err);
 
     // Revert on error
-    setProfiles((prev: any) =>
-      prev.map((p: any) => (p.id === profile.id ? profile : p))
+    setProfiles((prev) =>
+      prev.map((p) => (p.id === profile.id ? (profile as ProfileWithCodes) : p))
     );
   } finally {
     setUpdatingId(null);
@@ -275,7 +279,7 @@ console.log(data, error);
         </TableHeader>
 
         <TableBody>
-          {profiles.map((profile: any) => (
+          {profiles.map((profile) => (
             <TableRow key={profile.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
               {/* User */}
               <TableCell className="px-4 py-2.5 text-start">

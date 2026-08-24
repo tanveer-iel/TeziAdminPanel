@@ -23,6 +23,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     const savedTheme = localStorage.getItem("theme") as Theme | null;
     const initialTheme = savedTheme || "light"; // Default to light theme
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is only available client-side; reading it after mount (rather than during render) avoids an SSR/hydration mismatch
     setTheme(initialTheme);
     setIsInitialized(true);
   }, []);
