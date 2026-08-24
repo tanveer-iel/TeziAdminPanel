@@ -11,6 +11,9 @@ import {
 import Button from "../ui/button/Button";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
+import { Modal } from "../ui/modal";
+import Badge from "../ui/badge/Badge";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 interface WithdrawRequest {
   id: number | string;
@@ -138,156 +141,153 @@ const updateStatus = async () => {
 const getStatusStyle = (status: string) => {
   switch (status) {
     case "pending":
-      return "bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400";
+      return "warning";
 
     case "in_progress":
-      return "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400";
+      return "info";
 
     case "completed":
-      return "bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400";
+      return "success";
 
     case "cenceled":
-      return "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400";
+      return "error";
 
     default:
-      return "bg-gray-50 text-gray-600 dark:bg-gray-500/10 dark:text-gray-400";
+      return "light";
   }
 };
 
   // ---------------- UI STATES ----------------
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading withdrawal requests...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={8} />
       </div>
     );
   }
 
   if (error) {
-    return <div className="p-8 text-center text-red-500">{error}</div>;
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        {error}
+      </div>
+    );
   }
 
   if (requests.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No withdrawal requests found.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <Table>
-        <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+        <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
           <TableRow>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">User Name</TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Client Code</TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Bank Name</TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">IBAN</TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Holder Name</TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Amount</TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Status</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">User Name</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Client Code</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Bank Name</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">IBAN</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Holder Name</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Amount</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Status</TableCell>
 
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Created At</TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Created At</TableCell>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {requests.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{item.username || "-"}</TableCell>
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{item.clientcode}</TableCell>
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{item.bank_name}</TableCell>
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{item.iban}</TableCell>
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{item.bank_holder_name}</TableCell>
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{item.amount}</TableCell>
-              {/* <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{item.status}</TableCell> */}
-              <TableCell className="px-4 py-3 text-start text-theme-sm">
+            <TableRow key={item.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+              <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">{item.username || "-"}</TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{item.clientcode}</TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{item.bank_name}</TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{item.iban}</TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{item.bank_holder_name}</TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{item.amount}</TableCell>
+              <TableCell className="px-4 py-2.5 text-start text-[13px]">
   <button
   onClick={() => {
     setSelectedRequest(item);
     setSelectedStatus(item.status);
     setStatusModal(true);
   }}
-  className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${getStatusStyle(
-    item.status
-  )}`}
   disabled={item.status === "cenceled" || item.status === "completed"}
 >
-  {item.status === "in_progress"
-    ? "In Progress"
-    : item.status === "completed"
-    ? "Complete"
-    : item.status === "cenceled"
-    ? "Cancel"
-    : "Pending"}
+  <Badge color={getStatusStyle(item.status)} size="sm">
+    {item.status === "in_progress"
+      ? "In Progress"
+      : item.status === "completed"
+      ? "Complete"
+      : item.status === "cenceled"
+      ? "Cancel"
+      : "Pending"}
+  </Badge>
 </button>
 </TableCell>
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatDate(item.created_at)}</TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{formatDate(item.created_at)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
 
-      {statusModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-
-    <div className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-gray-900">
-
-      <h2 className="mb-5 text-lg font-semibold text-gray-800 dark:text-white">
-        Update Withdraw Status
-      </h2>
-
-
-      <select
-        value={selectedStatus}
-        onChange={(e) => setSelectedStatus(e.target.value)}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+      <Modal
+        isOpen={statusModal}
+        onClose={() => setStatusModal(false)}
+        className="max-w-[400px] p-5"
       >
+        <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
+          Update Withdraw Status
+        </h4>
 
-        <option value="pending">
-          Pending
-        </option>
-
-        <option value="in_progress">
-          In Progress
-        </option>
-
-        <option value="completed">
-          Complete
-        </option>
-
-        <option value="cenceled">
-          Cancel
-        </option>
-
-      </select>
-
-
-      <div className="mt-6 flex justify-end gap-3">
-
-        <button
-          onClick={() => setStatusModal(false)}
-          className="rounded-lg border px-4 py-2 text-gray-600 dark:text-gray-300"
+        <select
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+          className="mt-4 h-9 w-full rounded-md border border-gray-300 px-3 text-[13px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         >
-          Cancel
-        </button>
 
+          <option value="pending">
+            Pending
+          </option>
 
-        <Button
-          onClick={updateStatus}
-          disabled={updating}
-        >
-          {updating ? "Updating..." : "Update"}
-        </Button>
+          <option value="in_progress">
+            In Progress
+          </option>
 
-      </div>
+          <option value="completed">
+            Complete
+          </option>
 
-    </div>
+          <option value="cenceled">
+            Cancel
+          </option>
 
-  </div>
-)}
+        </select>
+
+        <div className="mt-5 flex justify-end gap-2">
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setStatusModal(false)}
+          >
+            Cancel
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={updateStatus}
+            disabled={updating}
+          >
+            {updating ? "Updating..." : "Update"}
+          </Button>
+
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import ComponentCard from "../common/ComponentCard";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
@@ -183,8 +182,12 @@ export default function RaastIdModal({
   };
 
   return (
-    <ComponentCard title="Add Raast ID">
+    <>
       <Button size="sm" onClick={openModal}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
         Generate Raast ID
       </Button>
 
@@ -195,9 +198,9 @@ export default function RaastIdModal({
       >
         <form
           onSubmit={handleSubmit}
-          className="space-y-6"
+          className="space-y-5"
         >
-          <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Generate Raast ID
           </h4>
 
@@ -319,6 +322,6 @@ export default function RaastIdModal({
           </div>
         </form>
       </Modal>
-    </ComponentCard>
+    </>
   );
 }

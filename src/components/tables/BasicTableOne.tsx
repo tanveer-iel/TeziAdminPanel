@@ -10,6 +10,7 @@ import {
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
 import supabase from "../../../SupabaseConfig";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 interface Profile {
   id: number | string;         
@@ -228,81 +229,94 @@ console.log(data, error);
     setUpdatingId(null);
   }
 };
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading profiles...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-  if (profiles.length === 0) return <div className="p-8 text-center text-gray-500">No users found.</div>;
+  if (loading) {
+    return (
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={5} />
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        {error}
+      </div>
+    );
+  }
+  if (profiles.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        No users found.
+      </div>
+    );
+  }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <Table>
-        <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+        <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
           <TableRow>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
               User
             </TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
               Email
             </TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
               Account Status
             </TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
               User Status
             </TableCell>
-            <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
               Client Codes
             </TableCell>
           </TableRow>
         </TableHeader>
 
-        <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+        <TableBody>
           {profiles.map((profile: any) => (
-            <TableRow key={profile.id}>
+            <TableRow key={profile.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
               {/* User */}
-              <TableCell className="px-5 py-4 text-start">
+              <TableCell className="px-4 py-2.5 text-start">
                 <div>
-                  <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                  <span className="block font-medium text-gray-800 text-[13px] dark:text-white/90">
                     {profile.full_name || "N/A"}
                   </span>
-                  <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+                  <span className="block text-[11.5px] text-gray-400">
                     User ID: {profile.id}
                   </span>
                 </div>
               </TableCell>
 
               {/* Email */}
-              <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                 {profile.email}
               </TableCell>
 
               {/* Account Status */}
-              {/* <TableCell className="px-4 py-3 text-start">
-                <Badge size="sm" color={profile.account ? "success" : "error"}>
-                  {profile.account ? "Linked" : "Unlinked"}
-                </Badge>
-              </TableCell> */}
-              <TableCell className="px-4 py-3 text-start">
-  <button
-    onClick={() => toggleAccountStatus(profile)}
-    disabled={updatingId === profile.id || profile.account === false} // Disable if updating or already unlinked  
-    className={`focus:outline-none transition-all ${
-      updatingId === profile.id
-        ? "opacity-50 cursor-not-allowed"
-        : "cursor-pointer hover:opacity-80"
-    }`}
-  >
-    <Badge size="sm" color={profile.account ? "success" : "error"}>
-      {updatingId === profile.id
-        ? "Updating..."
-        : profile.account
-        ? "Linked"
-        : "Unlinked"}
-    </Badge>
-  </button>
-</TableCell>
+              <TableCell className="px-4 py-2.5 text-start">
+                <button
+                  onClick={() => toggleAccountStatus(profile)}
+                  disabled={updatingId === profile.id || profile.account === false} // Disable if updating or already unlinked
+                  className={`focus:outline-none transition-all ${
+                    updatingId === profile.id
+                      ? "opacity-50 cursor-not-allowed"
+                      : "cursor-pointer hover:opacity-80"
+                  }`}
+                >
+                  <Badge size="sm" color={profile.account ? "success" : "error"}>
+                    {updatingId === profile.id
+                      ? "Updating..."
+                      : profile.account
+                      ? "Linked"
+                      : "Unlinked"}
+                  </Badge>
+                </button>
+              </TableCell>
 
               {/* User Status */}
-              <TableCell className="px-4 py-3 text-start">
+              <TableCell className="px-4 py-2.5 text-start">
                 <button
                   onClick={() => toggleBlockStatus(profile)}
                   disabled={updatingId === profile.id}
@@ -321,7 +335,7 @@ console.log(data, error);
               </TableCell>
 
               {/* New Column: Client Codes */}
-              <TableCell className="px-4 py-3 text-start">
+              <TableCell className="px-4 py-2.5 text-start">
                 {profile.clientCodes && profile.clientCodes.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {profile.clientCodes.map((code: string, idx: number) => (
@@ -331,7 +345,7 @@ console.log(data, error);
                     ))}
                   </div>
                 ) : (
-                  <span className="text-gray-400 text-sm">No codes</span>
+                  <span className="text-[12.5px] text-gray-400">No codes</span>
                 )}
               </TableCell>
             </TableRow>
