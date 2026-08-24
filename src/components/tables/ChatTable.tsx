@@ -12,6 +12,9 @@ import {
 import supabase from "../../../SupabaseConfig";
 import { TableSkeleton } from "../ui/skeleton/Skeleton";
 // import { toast } from "sonner";
+import TableSearchBar from "../ui/table/TableSearchBar";
+import TableFooter from "../ui/table/TableFooter";
+import { useTableSearch } from "../../hooks/useTableSearch";
 
 interface Profile {
   id: number | string;
@@ -26,6 +29,17 @@ export default function ChatTable() {
   const [ChatHistory, setChatHistory] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const PAGE_SIZE = 10;
+  const { search, setSearch, page, setPage, totalPages, paginated, filteredCount } =
+    useTableSearch(
+      ChatHistory,
+      (item, q) =>
+        item.email?.toLowerCase().includes(q) ||
+        item.symbol?.toLowerCase().includes(q) ||
+        item.question?.toLowerCase().includes(q),
+      PAGE_SIZE
+    );
 
   useEffect(() => {
     // async function fetchChatHistory() {
@@ -127,6 +141,13 @@ export default function ChatTable() {
   console.log(ChatHistory)
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <TableSearchBar value={search} onChange={setSearch} placeholder="Search by email, symbol or question…" />
+
+      {filteredCount === 0 ? (
+        <div className="p-8 text-center text-[13px] text-gray-500">
+          No chat history matches your search.
+        </div>
+      ) : (
       <Table>
         <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
           <TableRow>
@@ -167,7 +188,7 @@ export default function ChatTable() {
         </TableHeader>
 
         <TableBody>
-          {ChatHistory.map((items) => (
+          {paginated.map((items) => (
             <TableRow key={items.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
               <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                  {items.id}
@@ -188,6 +209,15 @@ export default function ChatTable() {
           ))}
         </TableBody>
       </Table>
+      )}
+
+      <TableFooter
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        totalCount={filteredCount}
+        pageSize={PAGE_SIZE}
+      />
     </div>
   );
 }

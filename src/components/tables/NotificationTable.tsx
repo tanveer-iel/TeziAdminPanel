@@ -10,6 +10,9 @@ import {
 } from "../ui/table";
 import supabase from "../../../SupabaseConfig";
 import { TableSkeleton } from "../ui/skeleton/Skeleton";
+import TableSearchBar from "../ui/table/TableSearchBar";
+import TableFooter from "../ui/table/TableFooter";
+import { useTableSearch } from "../../hooks/useTableSearch";
 
 interface Notification {
   id: number | string;
@@ -25,6 +28,16 @@ export default function NotificationTable({value}:ModalProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const PAGE_SIZE = 10;
+  const { search, setSearch, page, setPage, totalPages, paginated, filteredCount } =
+    useTableSearch(
+      notifications,
+      (notification, q) =>
+        notification.title?.toLowerCase().includes(q) ||
+        notification.body?.toLowerCase().includes(q),
+      PAGE_SIZE
+    );
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -79,6 +92,13 @@ export default function NotificationTable({value}:ModalProps) {
 
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <TableSearchBar value={search} onChange={setSearch} placeholder="Search notifications…" />
+
+      {filteredCount === 0 ? (
+        <div className="p-8 text-center text-[13px] text-gray-500">
+          No notifications match your search.
+        </div>
+      ) : (
       <Table>
         {/* Table Header */}
         <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
@@ -108,7 +128,7 @@ export default function NotificationTable({value}:ModalProps) {
 
         {/* Table Body */}
         <TableBody>
-          {notifications.map((notification) => (
+          {paginated.map((notification) => (
             <TableRow
               key={notification.id}
               className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
@@ -139,6 +159,15 @@ export default function NotificationTable({value}:ModalProps) {
           ))}
         </TableBody>
       </Table>
+      )}
+
+      <TableFooter
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        totalCount={filteredCount}
+        pageSize={PAGE_SIZE}
+      />
     </div>
   );
 }
