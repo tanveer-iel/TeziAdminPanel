@@ -17,6 +17,9 @@ import { Modal } from "../ui/modal";
 import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import Label from "../form/Label";
 import { TableSkeleton } from "../ui/skeleton/Skeleton";
+import TableSearchBar from "../ui/table/TableSearchBar";
+import TableFooter from "../ui/table/TableFooter";
+import { useTableSearch } from "../../hooks/useTableSearch";
 
 interface Sector {
   id: number | string;
@@ -40,6 +43,14 @@ export default function SectorTable({ value, setValue }: ModalProps) {
 
   const [deleteTarget, setDeleteTarget] = useState<Sector | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const PAGE_SIZE = 10;
+  const { search, setSearch, page, setPage, totalPages, paginated, filteredCount } =
+    useTableSearch(
+      sectors,
+      (sector, q) => sector.sector_name.toLowerCase().includes(q),
+      PAGE_SIZE
+    );
 
   const formatDate = (date: string) => {
     if (!date) return "-";
@@ -156,6 +167,13 @@ export default function SectorTable({ value, setValue }: ModalProps) {
   return (
     <>
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSearchBar value={search} onChange={setSearch} placeholder="Search sectors…" />
+
+        {filteredCount === 0 ? (
+          <div className="p-8 text-center text-[13px] text-gray-500">
+            No sectors match your search.
+          </div>
+        ) : (
         <Table>
           <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
             <TableRow>
@@ -174,7 +192,7 @@ export default function SectorTable({ value, setValue }: ModalProps) {
           </TableHeader>
 
           <TableBody>
-            {sectors.map((item) => (
+            {paginated.map((item) => (
               <TableRow key={item.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
                 <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
                   {item.sector_name}
@@ -202,6 +220,15 @@ export default function SectorTable({ value, setValue }: ModalProps) {
             ))}
           </TableBody>
         </Table>
+        )}
+
+        <TableFooter
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          totalCount={filteredCount}
+          pageSize={PAGE_SIZE}
+        />
       </div>
 
       {/* ---------------- EDIT MODAL ---------------- */}
