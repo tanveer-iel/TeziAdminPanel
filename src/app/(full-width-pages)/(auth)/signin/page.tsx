@@ -2,8 +2,8 @@ import SignInForm from "@/components/auth/SignInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: " SignIn Page ",
-  description: "",
+  title: "Sign In | Tezi Admin",
+  description: "Sign in to the Tezi admin panel",
 };
 
 export default function SignIn() {

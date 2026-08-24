@@ -4,10 +4,8 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Calender | TailAdmin - Dashboard Template",
-  description:
-    "This is Calender page for TailAdmin  Tailwind CSS Admin Dashboard Template",
-  // other metadata
+  title: "Calendar | Tezi Admin",
+  description: "Calendar page for the Tezi admin panel",
 };
 export default function page() {
   return (

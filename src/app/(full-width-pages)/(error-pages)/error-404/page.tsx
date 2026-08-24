@@ -5,9 +5,8 @@ import Link from "next/link";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Error 404 | TailAdmin - Dashboard Template",
-  description:
-    "This is Error 404 page for TailAdmin - Tailwind CSS Admin Dashboard Template",
+  title: "Error 404 | Tezi Admin",
+  description: "Error 404 page for the Tezi admin panel",
 };
 
 export default function Error404() {
@@ -47,7 +46,7 @@ export default function Error404() {
       </div>
       {/* <!-- Footer --> */}
       <p className="absolute text-sm text-center text-gray-500 -translate-x-1/2 bottom-6 left-1/2 dark:text-gray-400">
-        &copy; {new Date().getFullYear()} - TailAdmin
+        &copy; {new Date().getFullYear()} - Tezi Admin
       </p>
     </div>
   );
