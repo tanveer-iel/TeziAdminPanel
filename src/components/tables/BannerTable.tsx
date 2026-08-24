@@ -9,11 +9,14 @@ import {
   TableRow,
 } from "../ui/table";
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon } from "../ui/button/icons";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 interface Banner {
   id: number | string;
@@ -98,66 +101,75 @@ export default function BannerTable({ value, setValue }: ModalProps) {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">Loading Banners...</div>
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={3} />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">{error}</div>
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        {error}
+      </div>
     );
   }
 
   if (banners.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">No Banners found.</div>
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        No Banners found.
+      </div>
     );
   }
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+          <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
             <TableRow>
               <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
               >
                 Description
               </TableCell>
               <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
               >
                 Link
               </TableCell>
               <TableCell
                 isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400"
               >
                 Action
               </TableCell>
             </TableRow>
           </TableHeader>
 
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+          <TableBody>
             {banners.map((banner) => (
-              <TableRow key={banner.id}>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+              <TableRow
+                key={banner.id}
+                className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
+              >
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
                   {banner.des}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {banner.link}
+                <TableCell className="px-4 py-2.5 max-w-xs text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                  <span className="block truncate" title={banner.link}>
+                    {banner.link}
+                  </span>
                 </TableCell>
-                <TableCell className="px-4 py-3 flex gap-2">
-                  <Button
-                    size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => handleEdit(banner)}
-                  >
-                    Edit
-                  </Button>
+                <TableCell className="px-4 py-2.5 text-end">
+                  <div className="inline-flex items-center gap-1">
+                    <IconButton title="Edit" onClick={() => handleEdit(banner)}>
+                      <PencilIcon />
+                    </IconButton>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -169,10 +181,10 @@ export default function BannerTable({ value, setValue }: ModalProps) {
       <Modal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
-        className="max-w-[584px] p-5 lg:p-10"
+        className="max-w-[440px] p-5"
       >
-        <form onSubmit={handleUpdate} className="space-y-6">
-          <h4 className="text-lg font-medium text-gray-500 text-start dark:text-gray-400">
+        <form onSubmit={handleUpdate} className="space-y-5">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Update Banner
           </h4>
 
@@ -197,13 +209,13 @@ export default function BannerTable({ value, setValue }: ModalProps) {
           </div>
 
           {/* Change Image */}
-        
 
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="outline" onClick={() => setIsEditOpen(false)}>
               Cancel
             </Button>
-            <Button className="bg-brand-500 text-white">Update</Button>
+            <Button size="sm">Update</Button>
           </div>
         </form>
       </Modal>

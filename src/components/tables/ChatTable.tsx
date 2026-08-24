@@ -10,6 +10,7 @@ import {
 } from "../ui/table";
 // import Badge from "../ui/badge/Badge";
 import supabase from "../../../SupabaseConfig";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 // import { toast } from "sonner";
 
 interface Profile {
@@ -100,15 +101,15 @@ export default function ChatTable() {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading Chats...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={5} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -116,7 +117,7 @@ export default function ChatTable() {
 
   if (ChatHistory.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No Chat History found.
       </div>
     );
@@ -125,72 +126,68 @@ export default function ChatTable() {
 
   console.log(ChatHistory)
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="w-full">
-        <div className="w-full">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Id
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                 Email
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Symbol
-                </TableCell>
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <Table>
+        <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
+          <TableRow>
+            <TableCell
+              isHeader
+              className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
+            >
+              Id
+            </TableCell>
+            <TableCell
+              isHeader
+              className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
+            >
+             Email
+            </TableCell>
+            <TableCell
+              isHeader
+              className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
+            >
+              Symbol
+            </TableCell>
 
-                  <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Question
-                </TableCell>
+              <TableCell
+              isHeader
+              className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
+            >
+              Question
+            </TableCell>
 
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Answer
-                </TableCell>
-               
-              </TableRow>
-            </TableHeader>
+            <TableCell
+              isHeader
+              className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
+            >
+              Answer
+            </TableCell>
 
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {ChatHistory.map((items) => (
-                <TableRow key={items.id}>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                     {items.id}
-                  </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                     {items.email}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {items.symbol}
-                  </TableCell>   
-                   <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {items.question}
-                  </TableCell> 
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {items.answer}
-                  </TableCell>            
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+          </TableRow>
+        </TableHeader>
+
+        <TableBody>
+          {ChatHistory.map((items) => (
+            <TableRow key={items.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                 {items.id}
+              </TableCell>
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
+                 {items.email}
+              </TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                {items.symbol}
+              </TableCell>
+               <TableCell className="px-4 py-2.5 text-start text-[13px]">
+                {items.question}
+              </TableCell>
+              <TableCell className="px-4 py-2.5 text-start text-[13px]">
+                {items.answer}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

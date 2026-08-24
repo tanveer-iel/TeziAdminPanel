@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "../ui/table";
 import supabase from "../../../SupabaseConfig";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 interface Notification {
   id: number | string;
@@ -49,17 +50,20 @@ export default function NotificationTable({value}:ModalProps) {
     fetchNotifications();
   }, [value]);
 
+  const hasDate = notifications.some((n) => n.created_at);
+  const colCount = hasDate ? 3 : 2;
+
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading notifications...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={colCount} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -67,77 +71,74 @@ export default function NotificationTable({value}:ModalProps) {
 
   if (notifications.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No notifications found.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="w-full">
-        <div className="w-full">
-          <Table>
-            {/* Table Header */}
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-[30%]"
-                >
-                  Title
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <Table>
+        {/* Table Header */}
+        <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
+          <TableRow>
+            <TableCell
+              isHeader
+              className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400 w-[30%]"
+            >
+              Title
+            </TableCell>
+            <TableCell
+              isHeader
+              className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400"
+            >
+              Message
+            </TableCell>
+            {hasDate && (
+              <TableCell
+                isHeader
+                className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400 w-[180px]"
+              >
+                Date
+              </TableCell>
+            )}
+          </TableRow>
+        </TableHeader>
+
+        {/* Table Body */}
+        <TableBody>
+          {notifications.map((notification) => (
+            <TableRow
+              key={notification.id}
+              className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]"
+            >
+              {/* Title */}
+              <TableCell className="px-4 py-2.5 text-start text-[13px] font-medium text-gray-800 dark:text-white/90">
+                {notification.title}
+              </TableCell>
+
+              {/* Body/Message */}
+              <TableCell className="px-4 py-2.5 text-start text-[12.5px] text-gray-500 dark:text-gray-400">
+                {notification.body}
+              </TableCell>
+
+              {/* Created At (optional) */}
+              {notification.created_at && (
+                <TableCell className="px-4 py-2.5 text-start text-[12.5px] text-gray-500 dark:text-gray-400">
+                  {new Date(notification.created_at).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Message
-                </TableCell>
-                {notifications.some(n => n.created_at) && (
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-[180px]"
-                  >
-                    Date
-                  </TableCell>
-                )}
-              </TableRow>
-            </TableHeader>
-
-            {/* Table Body */}
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {notifications.map((notification) => (
-                <TableRow key={notification.id}>
-                  {/* Title */}
-                  <TableCell className="px-5 py-4 text-start">
-                    <span className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                      {notification.title}
-                    </span>
-                  </TableCell>
-
-                  {/* Body/Message */}
-                  <TableCell className="px-5 py-4 text-start text-gray-600 dark:text-gray-300 text-theme-sm">
-                    {notification.body}
-                  </TableCell>
-
-                  {/* Created At (optional) */}
-                  {notification.created_at && (
-                    <TableCell className="px-5 py-4 text-start text-gray-500 text-theme-xs">
-                      {new Date(notification.created_at).toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

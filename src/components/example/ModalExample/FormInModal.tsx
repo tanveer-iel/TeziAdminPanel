@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import ComponentCard from "../../common/ComponentCard";
 import Button from "../../ui/button/Button";
 import { Modal } from "../../ui/modal";
 import Label from "../../form/Label";
@@ -83,20 +82,20 @@ export default function FormInModal({setValue}:ModalProps) {
   };
 
   return (
-    <ComponentCard title="Send Notification">
+    <>
       <Button size="sm" onClick={openModal}>
         Send Notification
       </Button>
 
-      <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[584px] p-5 lg:p-10">
+      <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[440px] p-5">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSend();
           }}
-          className="space-y-6"
+          className="space-y-5"
         >
-          <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Send New Notification
           </h4>
 
@@ -126,19 +125,19 @@ export default function FormInModal({setValue}:ModalProps) {
               onChange={(e) => setBody(e.target.value)}
               disabled={loading}
               required
-              className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-theme-sm text-gray-700 placeholder:text-gray-500 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:placeholder:text-gray-500 resize-none"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-700 shadow-theme-xs outline-none placeholder:text-gray-400 focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:placeholder:text-gray-500 resize-none"
             />
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            <div className="rounded-md bg-error-50 p-3 text-[12.5px] text-error-600 dark:bg-error-500/10 dark:text-error-400">
               {error}
             </div>
           )}
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-3 mt-6">
+          <div className="flex items-center justify-end gap-2">
             <Button
               size="sm"
               variant="outline"
@@ -150,13 +149,12 @@ export default function FormInModal({setValue}:ModalProps) {
             <Button
               size="sm"
               disabled={loading}
-              className="bg-brand-500 hover:bg-brand-600 text-white"
             >
               {loading ? "Sending..." : "Send Notification"}
             </Button>
           </div>
         </form>
       </Modal>
-    </ComponentCard>
+    </>
   );
 }
