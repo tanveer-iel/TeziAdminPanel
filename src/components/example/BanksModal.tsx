@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import ComponentCard from "../common/ComponentCard";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
@@ -56,18 +55,22 @@ export default function BankModal({ setValue }: ModalProps) {
   };
 
   return (
-    <ComponentCard title="Add Bank">
+    <>
       <Button size="sm" onClick={openModal}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
         Add Bank
       </Button>
 
       <Modal
         isOpen={isOpen}
         onClose={closeModal}
-        className="max-w-[500px] p-5 lg:p-10"
+        className="max-w-[440px] p-5"
       >
-        <form className="space-y-6">
-          <h2 className="mb-4 text-lg font-medium text-gray-800 dark:text-white/90">
+        <form className="space-y-5">
+          <h2 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Add New Bank
           </h2>
 
@@ -85,7 +88,7 @@ export default function BankModal({ setValue }: ModalProps) {
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-3 mt-6">
+          <div className="flex items-center justify-end gap-2">
             <Button
               variant="outline"
               onClick={closeModal}
@@ -96,11 +99,11 @@ export default function BankModal({ setValue }: ModalProps) {
             </Button>
 
             <Button onClick={handleUpload} disabled={loading} size="sm">
-              {loading ? "Adding..." : "Submit"}
+              {loading ? "Adding…" : "Submit"}
             </Button>
           </div>
         </form>
       </Modal>
-    </ComponentCard>
+    </>
   );
 }

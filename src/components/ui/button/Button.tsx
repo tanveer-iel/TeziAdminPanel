@@ -23,8 +23,8 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   // Size Classes
   const sizeClasses = {
-    sm: "px-4 py-3 text-sm",
-    md: "px-5 py-3.5 text-sm",
+    sm: "px-2.5 py-1.5 text-[12.5px]",
+    md: "px-3.5 py-2 text-[13px]",
   };
 
   // Variant Classes
@@ -37,7 +37,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <button
-      className={`inline-flex items-center justify-center font-medium gap-2 rounded-lg transition ${className} ${
+      className={`inline-flex items-center justify-center font-medium gap-1.5 rounded-md transition ${className} ${
         sizeClasses[size]
       } ${variantClasses[variant]} ${
         disabled ? "cursor-not-allowed opacity-50" : ""

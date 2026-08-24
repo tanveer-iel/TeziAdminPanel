@@ -41,11 +41,11 @@ const AppHeader: React.FC = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
-      <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
-        <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
+    <header className="sticky top-0 flex w-full h-14 bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
+      <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-5">
+        <div className="flex items-center justify-between w-full gap-2 px-3 py-2.5 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-0">
           <button
-            className="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            className="items-center justify-center w-9 h-9 text-gray-500 border-gray-200 rounded-md z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:border"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
           >
@@ -102,7 +102,7 @@ const AppHeader: React.FC = () => {
 
           <button
             onClick={toggleApplicationMenu}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+            className="flex items-center justify-center w-9 h-9 text-gray-700 rounded-md z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
           >
             <svg
               width="24"
@@ -123,14 +123,25 @@ const AppHeader: React.FC = () => {
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
+          } items-center justify-between w-full gap-3 px-5 py-3 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:py-0 lg:shadow-none`}
         >
+          <div className="hidden lg:flex items-center gap-2 h-9 w-[220px] rounded-md border border-gray-200 bg-gray-50 px-2.5 dark:border-gray-800 dark:bg-white/[0.03]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 flex-shrink-0">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Search…"
+              className="w-full bg-transparent text-[13px] text-gray-700 placeholder:text-gray-400 outline-none dark:text-gray-300"
+            />
+            <kbd className="hidden xl:inline text-[11px] text-gray-400 border border-gray-200 dark:border-gray-700 rounded px-1">⌘K</kbd>
+          </div>
           <div className="flex items-center gap-2 2xsm:gap-3">
             <ThemeToggleButton />
-         
           </div>
-          <UserDropdown /> 
-    
+          <UserDropdown />
         </div>
       </div>
     </header>

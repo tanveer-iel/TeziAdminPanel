@@ -29,12 +29,12 @@ const Badge: React.FC<BadgeProps> = ({
   children,
 }) => {
   const baseStyles =
-    "inline-flex items-center px-2.5 py-0.5 justify-center gap-1 rounded-full font-medium";
+    "inline-flex items-center px-2 py-0.5 justify-center gap-1 rounded-full font-semibold";
 
   // Define size styles
   const sizeStyles = {
-    sm: "text-theme-xs", // Smaller padding and font size
-    md: "text-sm", // Default padding and font size
+    sm: "text-[11px]", // Smaller padding and font size
+    md: "text-[12px]", // Default padding and font size
   };
 
   // Define color styles for variants

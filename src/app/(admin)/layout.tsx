@@ -24,8 +24,8 @@ export default function AdminLayout({
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
-    ? "lg:ml-[290px]"
-    : "lg:ml-[90px]";
+    ? "lg:ml-[236px]"
+    : "lg:ml-[76px]";
 
 useEffect(() => {
   let isMounted = true;
@@ -98,7 +98,7 @@ if (loading) {
         <AppHeader />
 
         {/* Page Content */}
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-5">
           {children}
         </div>
       </div>
