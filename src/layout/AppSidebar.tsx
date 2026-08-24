@@ -65,7 +65,7 @@ const navGroups: NavGroup[] = [
     key: "users",
     items: [
       { name: "Users", icon: <UserCircleIcon />, path: "/Users" },
-      { name: "Widrawal Requests", icon: <ArrowDownIcon />, path: "/Widrawal_Requests" },
+      { name: "Withdrawal Requests", icon: <ArrowDownIcon />, path: "/Withdrawal_Requests" },
       { name: "Raast IDs", icon: <PlugInIcon />, path: "/RaastIds" },
       { name: "Contact", icon: <MailIcon />, path: "/Contact" },
     ],
@@ -99,6 +99,12 @@ const AppSidebar: React.FC = () => {
     {}
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (key: string) => {
+    setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
@@ -287,18 +293,39 @@ const AppSidebar: React.FC = () => {
       </div>
       <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar px-3 py-4">
         <nav className="flex flex-col gap-4">
-          {navGroups.map((group) => (
-            <div key={group.key}>
-              <h2
-                className={`mb-1.5 px-2 text-[11px] font-semibold uppercase tracking-wide flex leading-[16px] text-gray-400 ${
-                  !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-                }`}
-              >
-                {showLabels ? group.label : <HorizontaLDots />}
-              </h2>
-              {renderMenuItems(group)}
-            </div>
-          ))}
+          {navGroups.map((group) => {
+            const isCollapsed = showLabels && collapsedGroups[group.key];
+            return (
+              <div key={group.key}>
+                {showLabels ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.key)}
+                    className="mb-1.5 flex w-full items-center justify-between px-2 text-[11px] font-semibold uppercase tracking-wide leading-[16px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <span>{group.label}</span>
+                    <ChevronDownIcon
+                      className={`h-3.5 w-3.5 transition-transform duration-200 ${
+                        isCollapsed ? "-rotate-90" : ""
+                      }`}
+                    />
+                  </button>
+                ) : (
+                  <h2 className="mb-1.5 flex justify-center px-2 text-[11px] font-semibold uppercase tracking-wide leading-[16px] text-gray-400">
+                    <HorizontaLDots />
+                  </h2>
+                )}
+                <div
+                  className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+                  style={{ gridTemplateRows: isCollapsed ? "0fr" : "1fr" }}
+                >
+                  <div className="overflow-hidden">
+                    {renderMenuItems(group)}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </nav>
       </div>
     </aside>

@@ -42,7 +42,7 @@ const statDefs: StatDef[] = [
   },
   {
     label: "Pending Withdrawals",
-    href: "/Widrawal_Requests",
+    href: "/Withdrawal_Requests",
     query: countPendingWithdrawals,
   },
   {

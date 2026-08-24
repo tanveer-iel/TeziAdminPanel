@@ -25,7 +25,7 @@ interface WithdrawRequest {
   bank_holder_name: string;
   status:string;
   created_at: string;
- username?: string; // 
+ username?: string; //
 }
 
 interface ModalProps {
@@ -33,7 +33,7 @@ interface ModalProps {
   value: boolean;
 }
 
-export default function WindrawTable({ value }: ModalProps) {
+export default function WithdrawalRequestsTable({ value }: ModalProps) {
   const [requests, setRequests] = useState<WithdrawRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,13 +56,13 @@ const [updating, setUpdating] = useState(false);
     }).format(new Date(date.replace(" ", "T")));
   };
 
-  // ---------------- FETCH WITHDRAW REQUESTS ----------------
+  // ---------------- FETCH WITHDRAWAL REQUESTS ----------------
  useEffect(() => {
   async function fetchRequests() {
     try {
       setLoading(true);
 
-      // 1. Get withdraw requests
+      // 1. Get withdrawal requests
       const { data: requestsData, error: reqError } = await supabase
         .from("widrawrequest")
         .select("*")
@@ -241,7 +241,7 @@ const getStatusStyle = (status: string) => {
         className="max-w-[400px] p-5"
       >
         <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
-          Update Withdraw Status
+          Update Withdrawal Status
         </h4>
 
         <select

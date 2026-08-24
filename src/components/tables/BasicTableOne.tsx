@@ -11,6 +11,7 @@ import {
 import Badge from "../ui/badge/Badge";
 import supabase from "../../../SupabaseConfig";
 import { TableSkeleton } from "../ui/skeleton/Skeleton";
+import ConfirmDialog from "../ui/modal/ConfirmDialog";
 
 interface Profile {
   id: number | string;         
@@ -38,6 +39,10 @@ export default function BasicTableOne() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<number | string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{
+    profile: ProfileWithCodes;
+    type: "account" | "block";
+  } | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -131,6 +136,7 @@ export default function BasicTableOne() {
       );
     } finally {
       setUpdatingId(null);
+      setConfirmTarget(null);
     }
   };
 
@@ -231,6 +237,7 @@ console.log(data, error);
     );
   } finally {
     setUpdatingId(null);
+    setConfirmTarget(null);
   }
 };
   if (loading) {
@@ -301,7 +308,7 @@ console.log(data, error);
               {/* Account Status */}
               <TableCell className="px-4 py-2.5 text-start">
                 <button
-                  onClick={() => toggleAccountStatus(profile)}
+                  onClick={() => setConfirmTarget({ profile, type: "account" })}
                   disabled={updatingId === profile.id || profile.account === false} // Disable if updating or already unlinked
                   className={`focus:outline-none transition-all ${
                     updatingId === profile.id
@@ -322,7 +329,7 @@ console.log(data, error);
               {/* User Status */}
               <TableCell className="px-4 py-2.5 text-start">
                 <button
-                  onClick={() => toggleBlockStatus(profile)}
+                  onClick={() => setConfirmTarget({ profile, type: "block" })}
                   disabled={updatingId === profile.id}
                   className={`focus:outline-none transition-all ${
                     updatingId === profile.id ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:opacity-80"
@@ -356,6 +363,59 @@ console.log(data, error);
           ))}
         </TableBody>
       </Table>
+
+      <ConfirmDialog
+        isOpen={!!confirmTarget}
+        variant={
+          confirmTarget?.type === "account"
+            ? confirmTarget.profile.account
+              ? "danger"
+              : "default"
+            : confirmTarget?.profile.block
+            ? "default"
+            : "danger"
+        }
+        title={
+          confirmTarget?.type === "account"
+            ? confirmTarget.profile.account
+              ? "Unlink this account?"
+              : "Link this account?"
+            : confirmTarget?.profile.block
+            ? "Unblock this user?"
+            : "Block this user?"
+        }
+        description={
+          confirmTarget
+            ? confirmTarget.type === "account"
+              ? confirmTarget.profile.account
+                ? `This will unlink "${confirmTarget.profile.full_name || confirmTarget.profile.email}" and remove their client codes.`
+                : `This will re-link "${confirmTarget.profile.full_name || confirmTarget.profile.email}".`
+              : confirmTarget.profile.block
+              ? `This will unblock "${confirmTarget.profile.full_name || confirmTarget.profile.email}", allowing them to sign in again.`
+              : `This will block "${confirmTarget.profile.full_name || confirmTarget.profile.email}" from signing in.`
+            : undefined
+        }
+        confirmLabel={
+          confirmTarget?.type === "account"
+            ? confirmTarget.profile.account
+              ? "Unlink"
+              : "Link"
+            : confirmTarget?.profile.block
+            ? "Unblock"
+            : "Block"
+        }
+        loading={!!confirmTarget && updatingId === confirmTarget.profile.id}
+        onCancel={() => setConfirmTarget(null)}
+        onConfirm={() => {
+          if (!confirmTarget) return;
+          const { profile, type } = confirmTarget;
+          if (type === "account") {
+            toggleAccountStatus(profile);
+          } else {
+            toggleBlockStatus(profile);
+          }
+        }}
+      />
     </div>
   );
 }
