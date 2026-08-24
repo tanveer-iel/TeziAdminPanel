@@ -1,7 +1,5 @@
 "use client"
 import { useState } from "react";
-import ComponentCard from "../../../../../components/common/ComponentCard";
-import FinancialStatementModal from "../../../../../components/example/FinanicialStatementModal";
 import ResearchReportTable from "@/components/tables/ResearchReportTable";
 import ResearchModal from "@/components/example/ReseachModal";
 import React from "react";
@@ -11,14 +9,12 @@ import React from "react";
 export default function BasicTables() {
    const [refresh,setRefresh]=useState(false)
   return (
-    <div>
-      <div className="space-y-6">
-         {/* <FinancialStatementModal setValue={setRefresh}/> */}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-[17px] font-semibold text-gray-800 dark:text-white/90">Research Report</h1>
         <ResearchModal setValue={setRefresh}/>
-        <ComponentCard title="Research Report">
-          <ResearchReportTable value={refresh} setValue={setRefresh}/>
-        </ComponentCard>
       </div>
+      <ResearchReportTable value={refresh} setValue={setRefresh}/>
     </div>
   );
 }

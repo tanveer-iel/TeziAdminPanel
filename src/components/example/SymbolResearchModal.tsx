@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import ComponentCard from "../common/ComponentCard";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
@@ -273,8 +272,12 @@ export default function SymbolResearchModal({ setValue }: ModalProps) {
   };
 
   return (
-    <ComponentCard title="Add Symbol Research">
+    <>
       <Button size="sm" onClick={openModal}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
         Add Symbol Research Report
       </Button>
 
@@ -284,13 +287,13 @@ export default function SymbolResearchModal({ setValue }: ModalProps) {
         className="max-w-[700px] p-5 lg:p-8 mt-[700px]"
       >
         <form
-          className="space-y-6"
+          className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
             handleUpload();
           }}
         >
-          <h2 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
+          <h2 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Add Symbol Research Report
           </h2>
 
@@ -309,18 +312,7 @@ export default function SymbolResearchModal({ setValue }: ModalProps) {
               }
               disabled={loading}
               placeholder="e.g. MCB"
-              className="
-                w-full rounded-lg border border-gray-300
-                bg-white px-4 py-2.5 text-gray-700
-                shadow-sm outline-none transition-all
-                focus:border-primary-500 focus:ring-2
-                focus:ring-primary-200
-                disabled:cursor-not-allowed
-                disabled:bg-gray-100
-                dark:border-gray-600
-                dark:bg-gray-800
-                dark:text-gray-200
-              "
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -331,7 +323,7 @@ export default function SymbolResearchModal({ setValue }: ModalProps) {
               The Case
             </Label>
 
-            <p className="mb-2 text-xs text-gray-500">
+            <p className="mb-1.5 text-[12px] text-gray-400">
               Add one point per line.
             </p>
 
@@ -346,18 +338,7 @@ export default function SymbolResearchModal({ setValue }: ModalProps) {
 Improving margins
 Stable cash flows
 Strong market position`}
-              className="
-                w-full rounded-lg border border-gray-300
-                bg-white px-4 py-3 text-gray-700
-                shadow-sm outline-none transition-all
-                focus:border-primary-500 focus:ring-2
-                focus:ring-primary-200
-                disabled:cursor-not-allowed
-                disabled:bg-gray-100
-                dark:border-gray-600
-                dark:bg-gray-800
-                dark:text-gray-200
-              "
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -376,25 +357,14 @@ Strong market position`}
               disabled={loading}
               rows={3}
               placeholder="Enter the key risk..."
-              className="
-                w-full rounded-lg border border-gray-300
-                bg-white px-4 py-3 text-gray-700
-                shadow-sm outline-none transition-all
-                focus:border-primary-500 focus:ring-2
-                focus:ring-primary-200
-                disabled:cursor-not-allowed
-                disabled:bg-gray-100
-                dark:border-gray-600
-                dark:bg-gray-800
-                dark:text-gray-200
-              "
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
           {/* ================= CURRENT RATING ================= */}
 
-          <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-            <h3 className="mb-4 text-sm font-semibold text-gray-800 dark:text-white">
+          <div className="rounded-md border border-gray-200 p-3.5 dark:border-gray-700">
+            <h3 className="mb-3 text-[13px] font-semibold text-gray-800 dark:text-white">
               Current Rating
             </h3>
 
@@ -410,16 +380,7 @@ Strong market position`}
                     setCurrentRating(e.target.value)
                   }
                   disabled={loading}
-                  className="
-                    w-full rounded-lg border border-gray-300
-                    bg-white px-4 py-2.5 text-gray-700
-                    outline-none
-                    focus:border-primary-500
-                    focus:ring-2 focus:ring-primary-200
-                    dark:border-gray-600
-                    dark:bg-gray-800
-                    dark:text-gray-200
-                  "
+                  className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                 >
                   <option value="">Select Rating</option>
                   <option value="BUY">BUY</option>
@@ -441,16 +402,7 @@ Strong market position`}
                   }
                   disabled={loading}
                   placeholder="e.g. Aug 2026"
-                  className="
-                    w-full rounded-lg border border-gray-300
-                    bg-white px-4 py-2.5 text-gray-700
-                    outline-none
-                    focus:border-primary-500
-                    focus:ring-2 focus:ring-primary-200
-                    dark:border-gray-600
-                    dark:bg-gray-800
-                    dark:text-gray-200
-                  "
+                  className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                 />
               </div>
 
@@ -468,16 +420,7 @@ Strong market position`}
                   }
                   disabled={loading}
                   placeholder="e.g. 426.28"
-                  className="
-                    w-full rounded-lg border border-gray-300
-                    bg-white px-4 py-2.5 text-gray-700
-                    outline-none
-                    focus:border-primary-500
-                    focus:ring-2 focus:ring-primary-200
-                    dark:border-gray-600
-                    dark:bg-gray-800
-                    dark:text-gray-200
-                  "
+                  className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                 />
               </div>
             </div>
@@ -485,8 +428,8 @@ Strong market position`}
 
           {/* ================= PREVIOUS RATING ================= */}
 
-          <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-            <h3 className="mb-4 text-sm font-semibold text-gray-800 dark:text-white">
+          <div className="rounded-md border border-gray-200 p-3.5 dark:border-gray-700">
+            <h3 className="mb-3 text-[13px] font-semibold text-gray-800 dark:text-white">
               Previous Rating
             </h3>
 
@@ -502,16 +445,7 @@ Strong market position`}
                     setPreviousRating(e.target.value)
                   }
                   disabled={loading}
-                  className="
-                    w-full rounded-lg border border-gray-300
-                    bg-white px-4 py-2.5 text-gray-700
-                    outline-none
-                    focus:border-primary-500
-                    focus:ring-2 focus:ring-primary-200
-                    dark:border-gray-600
-                    dark:bg-gray-800
-                    dark:text-gray-200
-                  "
+                  className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                 >
                   <option value="">Select Rating</option>
                   <option value="BUY">BUY</option>
@@ -533,16 +467,7 @@ Strong market position`}
                   }
                   disabled={loading}
                   placeholder="e.g. Last quarter"
-                  className="
-                    w-full rounded-lg border border-gray-300
-                    bg-white px-4 py-2.5 text-gray-700
-                    outline-none
-                    focus:border-primary-500
-                    focus:ring-2 focus:ring-primary-200
-                    dark:border-gray-600
-                    dark:bg-gray-800
-                    dark:text-gray-200
-                  "
+                  className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                 />
               </div>
 
@@ -560,16 +485,7 @@ Strong market position`}
                   }
                   disabled={loading}
                   placeholder="e.g. 418.19"
-                  className="
-                    w-full rounded-lg border border-gray-300
-                    bg-white px-4 py-2.5 text-gray-700
-                    outline-none
-                    focus:border-primary-500
-                    focus:ring-2 focus:ring-primary-200
-                    dark:border-gray-600
-                    dark:bg-gray-800
-                    dark:text-gray-200
-                  "
+                  className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
                 />
               </div>
             </div>
@@ -577,14 +493,14 @@ Strong market position`}
 
           {/* ================= FULL NOTE ================= */}
 
-          <div className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-            <h3 className="mb-4 text-sm font-semibold text-gray-800 dark:text-white">
+          <div className="rounded-md border border-gray-200 p-3.5 dark:border-gray-700">
+            <h3 className="mb-3 text-[13px] font-semibold text-gray-800 dark:text-white">
               Full Note
             </h3>
 
             {/* Document Title */}
 
-            <div className="mb-5">
+            <div className="mb-4">
               <Label>
                 Document Title{" "}
                 <span className="text-error-500">*</span>
@@ -598,16 +514,7 @@ Strong market position`}
                 }
                 disabled={loading}
                 placeholder="e.g. MCB Research Report"
-                className="
-                  w-full rounded-lg border border-gray-300
-                  bg-white px-4 py-2.5 text-gray-700
-                  outline-none
-                  focus:border-primary-500
-                  focus:ring-2 focus:ring-primary-200
-                  dark:border-gray-600
-                  dark:bg-gray-800
-                  dark:text-gray-200
-                "
+                className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               />
             </div>
 
@@ -619,32 +526,22 @@ Strong market position`}
                 <span className="text-error-500">*</span>
               </Label>
 
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                onChange={(e) =>
-                  setPdfFile(
-                    e.target.files?.[0] || null
-                  )
-                }
-                disabled={loading}
-                className="
-                  w-full text-sm text-gray-600
-                  file:mr-4 file:rounded
-                  file:border-0
-                  file:bg-primary-50
-                  file:px-4 file:py-2
-                  file:text-sm
-                  file:font-semibold
-                  file:text-primary-700
-                  hover:file:bg-primary-100
-                  dark:file:bg-gray-700
-                  dark:file:text-gray-200
-                "
-              />
+              <div className="rounded-md border border-dashed border-gray-300 p-3 dark:border-gray-700">
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) =>
+                    setPdfFile(
+                      e.target.files?.[0] || null
+                    )
+                  }
+                  disabled={loading}
+                  className="block w-full text-[13px] text-gray-600 dark:text-gray-400"
+                />
+              </div>
 
               {pdfFile && (
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-1.5 text-[12px] text-success-600">
                   Selected: {pdfFile.name}
                 </p>
               )}
@@ -653,7 +550,7 @@ Strong market position`}
 
           {/* ================= BUTTONS ================= */}
 
-          <div className="mt-6 flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-2">
             <Button
               variant="outline"
               onClick={closeModal}
@@ -672,6 +569,6 @@ Strong market position`}
           </div>
         </form>
       </Modal>
-    </ComponentCard>
+    </>
   );
 }

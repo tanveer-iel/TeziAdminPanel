@@ -9,10 +9,13 @@ import {
   TableRow,
 } from "../ui/table";
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon } from "../ui/button/icons";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 interface IELInfo {
   id: number | string;
@@ -119,15 +122,15 @@ export default function IELInfoTable({ value, setValue }: ModalProps) {
   // ---------------- UI STATES ----------------
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading IEL information...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={4} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -135,7 +138,7 @@ export default function IELInfoTable({ value, setValue }: ModalProps) {
 
   if (ielInfo.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No IEL information found.
       </div>
     );
@@ -143,35 +146,23 @@ export default function IELInfoTable({ value, setValue }: ModalProps) {
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+          <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
             <TableRow>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Email
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Phone
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Created At
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Action
               </TableCell>
             </TableRow>
@@ -179,27 +170,25 @@ export default function IELInfoTable({ value, setValue }: ModalProps) {
 
           <TableBody>
             {ielInfo.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+              <TableRow key={item.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
                   {item.email || "-"}
                 </TableCell>
 
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                   {item.phone || "-"}
                 </TableCell>
 
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                   {formatDate(item.created_at)}
                 </TableCell>
 
-                <TableCell className="px-4 py-3">
-                  <Button
-                    size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => handleEdit(item)}
-                  >
-                    Edit
-                  </Button>
+                <TableCell className="px-4 py-2.5 text-end">
+                  <div className="inline-flex items-center gap-1">
+                    <IconButton title="Edit" onClick={() => handleEdit(item)}>
+                      <PencilIcon />
+                    </IconButton>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -211,10 +200,10 @@ export default function IELInfoTable({ value, setValue }: ModalProps) {
       <Modal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
-        className="max-w-[584px] p-5 lg:p-10"
+        className="max-w-[440px] p-5"
       >
-        <form onSubmit={handleUpdate} className="space-y-6">
-          <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300">
+        <form onSubmit={handleUpdate} className="space-y-5">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Update IEL Information
           </h4>
 
@@ -226,7 +215,7 @@ export default function IELInfoTable({ value, setValue }: ModalProps) {
               value={editEmail}
               onChange={(e) => setEditEmail(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               placeholder="Enter email"
             />
           </div>
@@ -239,22 +228,21 @@ export default function IELInfoTable({ value, setValue }: ModalProps) {
               value={editPhone}
               onChange={(e) => setEditPhone(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               placeholder="Enter phone number"
             />
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2">
             <Button
+              size="sm"
               variant="outline"
               onClick={() => setIsEditOpen(false)}
             >
               Cancel
             </Button>
 
-            <Button
-              className="bg-brand-500 text-white"
-            >
+            <Button size="sm">
               Update
             </Button>
           </div>

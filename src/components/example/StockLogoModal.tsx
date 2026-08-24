@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import ComponentCard from "../common/ComponentCard";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
@@ -98,8 +97,12 @@ export default function StockLogoModal({ setValue }: StockLogoModalProps) {
   };
 
   return (
-    <ComponentCard title="Add Stock Logo">
+    <>
       <Button size="sm" onClick={openModal}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
         Add Stock Logo
       </Button>
 
@@ -108,8 +111,8 @@ export default function StockLogoModal({ setValue }: StockLogoModalProps) {
         onClose={handleClose}
         className="max-w-[584px] p-5 lg:p-10"
       >
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <h4 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Add New Stock Logo
           </h4>
 
@@ -132,26 +135,27 @@ export default function StockLogoModal({ setValue }: StockLogoModalProps) {
             <Label>
               Logo Image <span className="text-error-500">*</span>
             </Label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImage(e.target.files?.[0] || null)}
-              disabled={loading}
-              className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
-              required
-            />
-           
+            <div className="rounded-md border border-dashed border-gray-300 p-3 dark:border-gray-700">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setImage(e.target.files?.[0] || null)}
+                disabled={loading}
+                className="w-full text-[13px] text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-[13px] file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                required
+              />
+            </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            <div className="rounded-lg bg-red-50 p-4 text-[13px] text-red-600 dark:bg-red-900/20 dark:text-red-400">
               {error}
             </div>
           )}
 
           {/* Buttons */}
-          <div className="flex items-center justify-end gap-3 mt-6">
+          <div className="flex items-center justify-end gap-2">
             <Button
               size="sm"
               variant="outline"
@@ -171,6 +175,6 @@ export default function StockLogoModal({ setValue }: StockLogoModalProps) {
           </div>
         </form>
       </Modal>
-    </ComponentCard>
+    </>
   );
 }

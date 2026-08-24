@@ -1,23 +1,17 @@
 "use client"
 import { useState } from "react";
-import ComponentCard from "../../../../../components/common/ComponentCard";
 import SectorTable from "@/components/tables/SectorsTable";
 import SectorModal from "@/components/example/SectorModal";
-import FinancialStatementModal from "../../../../../components/example/FinanicialStatementModal";
-
-
 
 export default function BasicTables() {
-   const [refresh,setRefresh]=useState(false)
+  const [refresh, setRefresh] = useState(false)
   return (
-    <div>
-      <div className="space-y-6">
-         {/* <FinancialStatementModal setValue={setRefresh}/> */}
-         <SectorModal setValue={setRefresh}/>   
-        <ComponentCard title="Sectors">
-          <SectorTable value={refresh} setValue={setRefresh}/>
-        </ComponentCard>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-[17px] font-semibold text-gray-800 dark:text-white/90">Sectors</h1>
+        <SectorModal setValue={setRefresh}/>
       </div>
+      <SectorTable value={refresh} setValue={setRefresh}/>
     </div>
   );
 }

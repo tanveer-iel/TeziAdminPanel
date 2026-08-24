@@ -10,12 +10,16 @@ import {
 } from "../ui/table";
 // import Badge from "../ui/badge/Badge";
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon, TrashIcon } from "../ui/button/icons";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner"; // Optional: for nice notifications (recommended)
 import { Modal } from "../ui/modal";
+import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import Label from "../form/Label";
 // import Input from "../form/input/InputField";
 import TextArea from "../form/input/TextArea";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 const FINANCIAL_TABS = [
   { value: "Audited Finantials 30 June", label: "Audited Finantials 30 June" },
@@ -30,7 +34,7 @@ interface Profile {
   short_des:  string;
   pdf: string;
   tab: string;
- 
+
 }
 
 interface ModalProps {
@@ -45,11 +49,14 @@ export default function FinancialStatementTable({value, setValue}:ModalProps) {
 
   const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedFinancial, setselectedFinancial] = useState<Profile | null>(null);
-    
+
     const [editshortdesc, seteditshortdesc] = useState("");
     const [edittabtitle, setedittabtitle] = useState("");
     // const [editpdf, seteditpdf] = useState(null);
     const [editpdf, seteditpdf] = useState<File | null>(null);;
+
+  const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -59,11 +66,11 @@ export default function FinancialStatementTable({value, setValue}:ModalProps) {
         const { data, error } = await supabase
           .from("finanicial_statements")
           .select("*")
-           .order("created_at", { ascending: false }); 
+           .order("created_at", { ascending: false });
 
         if (error) throw error;
 
-     
+
 
         setBlogsData(data);
       } catch (err) {
@@ -79,9 +86,7 @@ export default function FinancialStatementTable({value, setValue}:ModalProps) {
 
 
     const handleDelete = async (id: number | string) => {
-    const confirmDelete = confirm("Are you sure you want to delete this record?");
-    if (!confirmDelete) return;
-
+    setDeleting(true);
     try {
       const { error } = await supabase
         .from("finanicial_statements")
@@ -96,6 +101,9 @@ export default function FinancialStatementTable({value, setValue}:ModalProps) {
     } catch (err) {
       console.error("Delete error:", err);
       toast.error("Failed to delete record");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -160,15 +168,15 @@ const handleUpdate = async (e: React.FormEvent) => {
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading Finncial Statements...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={4} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -176,7 +184,7 @@ const handleUpdate = async (e: React.FormEvent) => {
 
   if (BlogsData.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No Finncial Statements found.
       </div>
     );
@@ -184,88 +192,66 @@ const handleUpdate = async (e: React.FormEvent) => {
 
   return (
     <>
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="w-full">
-        <div className="w-full">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
-           
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  News
-                </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Tab Title
-                </TableCell>
+    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <Table>
+        <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
+          <TableRow>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+              News
+            </TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+              Tab Title
+            </TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+              PDF
+            </TableCell>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400">
+              Action
+            </TableCell>
+          </TableRow>
+        </TableHeader>
 
-                  <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+        <TableBody>
+          {BlogsData.map((items) => (
+            <TableRow key={items.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+              <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
+                {items?.short_des}
+              </TableCell>
+              <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                {items.tab}
+              </TableCell>
+              <TableCell className="px-4 py-2.5 text-start">
+                <button
+                  type="button"
+                  onClick={() => window.open(items.pdf, "_blank")}
+                  className="inline-flex items-center gap-1 text-[12.5px] font-medium text-brand-500 hover:text-brand-600 hover:underline dark:text-brand-400"
                 >
-                 PDF
-                </TableCell>
-                  <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Action
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  View PDF
+                </button>
               </TableCell>
 
-               
-              </TableRow>
-            </TableHeader>
-
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {BlogsData.map((items) => (
-                <TableRow key={items.id}>
-                 
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    
-                   {items?.short_des}
-                    
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {items.tab}
-                  </TableCell>   
-                       <TableCell className="px-4 py-3 text-start text-theme-sm">
-                   <Button
-                   size="sm"
-                     onClick={() => window.open(items.pdf, "_blank")}
-                     className=" text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-200"
-                   >
-                     Open PDF
-                   </Button>
-                 </TableCell>
-
-                    <TableCell className="px-4 py-3 flex gap-2">
-                        <Button
-  size="sm"
-  className="bg-blue-500 hover:bg-blue-600 text-white"
-  onClick={() => handleEdit(items)}
->
-  Edit
-</Button>
-                  <Button
-                    size="sm"
-                    className="bg-red-500 hover:bg-red-600 text-white"
-                    onClick={() => handleDelete(items.id)}
+              <TableCell className="px-4 py-2.5 text-end">
+                <div className="inline-flex items-center gap-1">
+                  <IconButton title="Edit" onClick={() => handleEdit(items)}>
+                    <PencilIcon />
+                  </IconButton>
+                  <IconButton
+                    title="Delete"
+                    variant="danger"
+                    onClick={() => setDeleteTarget(items)}
                   >
-                    Delete
-                  </Button>
-                </TableCell>
-                            
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+                    <TrashIcon />
+                  </IconButton>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
 
      <Modal
@@ -273,9 +259,9 @@ const handleUpdate = async (e: React.FormEvent) => {
   onClose={() => setIsEditOpen(false)}
   className="max-w-[584px] p-5 lg:p-10"
 >
-  <form onSubmit={handleUpdate} className="space-y-6">
+  <form onSubmit={handleUpdate} className="space-y-5">
 
-    <h4 className="text-lg font-medium text-gray-500 text-start dark:text-gray-400">Update Financial Statement</h4>
+    <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">Update Financial Statement</h4>
 
     {/* Title */}
     <div>
@@ -297,15 +283,7 @@ const handleUpdate = async (e: React.FormEvent) => {
               value={edittabtitle}
               onChange={(e) => setedittabtitle(e.target.value)}
               required
-              className={`
-                w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 
-                text-gray-700 shadow-sm outline-none 
-                transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-200 
-                disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500
-                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 
-                dark:focus:border-primary-400 dark:focus:ring-primary-500/30
-                dark:disabled:bg-gray-700 dark:disabled:text-gray-400
-              `}
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             >
               <option value="" disabled>
                 Select financial statement type
@@ -318,9 +296,9 @@ const handleUpdate = async (e: React.FormEvent) => {
             </select>
           </div>
 
-   
 
-   
+
+
     {/* New Image */}
     <div>
       <Label>Upload PDF</Label>
@@ -329,22 +307,21 @@ const handleUpdate = async (e: React.FormEvent) => {
               accept="pdf/*"
               onChange={(e) => seteditpdf(e.target.files?.[0] || null)}
               disabled={loading}
-              className="w-full text-sm text-gray-600"
+              className="w-full text-[13px] text-gray-600 dark:text-gray-400"
             />
     </div>
 
-    <div className="flex justify-end gap-3">
+    <div className="flex justify-end gap-2">
 
       <Button
+        size="sm"
         variant="outline"
         onClick={() => setIsEditOpen(false)}
       >
         Cancel
       </Button>
 
-      <Button
-        className="bg-brand-500 text-white"
-      >
+      <Button size="sm">
         Update
       </Button>
 
@@ -353,6 +330,15 @@ const handleUpdate = async (e: React.FormEvent) => {
   </form>
 </Modal>
 
+      {/* ---------------- DELETE CONFIRM ---------------- */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Delete record?"
+        description={deleteTarget ? `This will permanently remove "${deleteTarget.short_des}".` : undefined}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+      />
     </>
   );
 }

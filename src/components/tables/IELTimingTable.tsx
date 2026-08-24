@@ -9,10 +9,14 @@ import {
   TableRow,
 } from "../ui/table";
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon } from "../ui/button/icons";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
+import Badge from "../ui/badge/Badge";
 
 interface IELTiming {
   id: number | string | null;
@@ -198,15 +202,15 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
   // ---------------- UI STATES ----------------
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading IEL timings...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={7} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -214,56 +218,35 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
 
   return (
     <>
-      <div className="overflow-x-auto overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="overflow-x-auto overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+          <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
             <TableRow>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Day
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Status
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Start Time
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 End Time
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Break Start
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Break End
               </TableCell>
 
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Action
               </TableCell>
             </TableRow>
@@ -271,58 +254,67 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
 
           <TableBody>
             {timings.map((item) => (
-              <TableRow key={item.day}>
+              <TableRow key={item.day} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
                 {/* Day */}
-                <TableCell className="px-4 py-3 font-medium text-gray-700 text-start text-theme-sm dark:text-gray-300">
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
                   {item.day}
                 </TableCell>
 
                 {/* Status */}
-                <TableCell className="px-4 py-3 text-start text-theme-sm">
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                      item.status
-                        ? "bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400"
-                        : "bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400"
-                    }`}
-                  >
+                <TableCell className="px-4 py-2.5 text-start text-[13px]">
+                  <Badge size="sm" color={item.status ? "success" : "error"}>
                     {item.status ? "Open" : "Closed"}
-                  </span>
+                  </Badge>
                 </TableCell>
 
                 {/* Start */}
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                   {item.start_time ? formatTimeForInput(item.start_time) : "-"}
                 </TableCell>
 
                 {/* End */}
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                   {item.end_time ? formatTimeForInput(item.end_time) : "-"}
                 </TableCell>
 
                 {/* Break Start */}
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                   {item.break_start_time
                     ? formatTimeForInput(item.break_start_time)
                     : "-"}
                 </TableCell>
 
                 {/* Break End */}
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
                   {item.break_end_time
                     ? formatTimeForInput(item.break_end_time)
                     : "-"}
                 </TableCell>
 
                 {/* Action */}
-                <TableCell className="px-4 py-3">
-                  <Button
-                    size="sm"
-                    className="bg-blue-500 text-white hover:bg-blue-600"
-                    onClick={() => handleEdit(item)}
-                  >
-                    Edit
-                  </Button>
+                <TableCell className="px-4 py-2.5 text-end">
+                  <div className="inline-flex items-center gap-1">
+                    {item.id === null ? (
+                      <IconButton title="Add timing" onClick={() => handleEdit(item)}>
+                        <svg
+                          className="h-3.5 w-3.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                      </IconButton>
+                    ) : (
+                      <IconButton title="Edit" onClick={() => handleEdit(item)}>
+                        <PencilIcon />
+                      </IconButton>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -330,15 +322,15 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
         </Table>
       </div>
 
-      {/* ---------------- EDIT MODAL ---------------- */}
+      {/* ---------------- ADD / EDIT MODAL ---------------- */}
       <Modal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
-        className="max-w-[584px] p-5 lg:p-10 mt-28"
+        className="max-w-[500px] p-5"
       >
-        <form onSubmit={handleUpdate} className="space-y-6">
-          <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300">
-            Update IEL Timing
+        <form onSubmit={handleUpdate} className="space-y-4">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
+            {selectedTiming?.id === null ? "Add IEL Timing" : "Update IEL Timing"}
           </h4>
 
           {/* Day */}
@@ -348,7 +340,7 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
             <select
               value={editDay}
               onChange={(e) => setEditDay(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             >
               {DAYS.map((day) => (
                 <option key={day} value={day}>
@@ -362,15 +354,15 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
           <div>
             <Label>Status</Label>
 
-            <label className="flex cursor-pointer items-center gap-3">
+            <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={editStatus}
                 onChange={(e) => setEditStatus(e.target.checked)}
-                className="h-5 w-5 rounded border-gray-300"
+                className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
               />
 
-              <span className="text-sm text-gray-700 dark:text-gray-300">
+              <span className="text-[13px] text-gray-700 dark:text-gray-300">
                 {editStatus ? "Open" : "Closed"}
               </span>
             </label>
@@ -385,7 +377,7 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
               value={editStartTime}
               onChange={(e) => setEditStartTime(e.target.value)}
               required={editStatus}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -398,7 +390,7 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
               value={editEndTime}
               onChange={(e) => setEditEndTime(e.target.value)}
               required={editStatus}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -410,7 +402,7 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
               type="time"
               value={editBreakStartTime}
               onChange={(e) => setEditBreakStartTime(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -422,13 +414,14 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
               type="time"
               value={editBreakEndTime}
               onChange={(e) => setEditBreakEndTime(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 shadow-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2">
             <Button
+              size="sm"
               variant="outline"
               onClick={() => setIsEditOpen(false)}
               disabled={updating}
@@ -436,11 +429,8 @@ export default function IELTimingTable({ value, setValue }: ModalProps) {
               Cancel
             </Button>
 
-            <Button
-              className="bg-brand-500 text-white"
-              disabled={updating}
-            >
-              {updating ? "Updating..." : "Update"}
+            <Button size="sm" disabled={updating}>
+              {updating ? "Updating…" : "Update"}
             </Button>
           </div>
         </form>

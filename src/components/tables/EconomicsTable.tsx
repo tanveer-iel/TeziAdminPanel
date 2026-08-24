@@ -9,12 +9,16 @@ import {
   TableRow,
 } from "../ui/table";
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon, TrashIcon } from "../ui/button/icons";
 import { Modal } from "../ui/modal";
+import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import { useModal } from "../../hooks/useModal";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 interface Profile {
   id: number | string;
@@ -37,6 +41,9 @@ export default function EconomicTable({ value }:ModalProps) {
   const [symbol, setSymbol] = useState("");
   const [date, setDate] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function fetchEconomicCalender() {
@@ -119,9 +126,7 @@ const handleEdit = (item: Profile) => {
   /* DELETE FUNCTION */
 
   const handleDelete = async (id: number | string) => {
-    const confirmDelete = confirm("Are you sure you want to delete this record?");
-    if (!confirmDelete) return;
-
+    setDeleting(true);
     try {
       const { error } = await supabase
         .from("economic_calender")
@@ -136,20 +141,23 @@ const handleEdit = (item: Profile) => {
     } catch (err) {
       console.error("Delete error:", err);
       toast.error("Failed to delete record");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading Economics...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={4} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -157,7 +165,7 @@ const handleEdit = (item: Profile) => {
 
   if (economicCalender.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No Economic Calendar found.
       </div>
     );
@@ -169,66 +177,61 @@ const handleEdit = (item: Profile) => {
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] text-gray-500 text-start text-theme-sm dark:text-gray-400">
-        <div className="w-full">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
-                <TableCell isHeader className="px-5 py-3 text-start">
-                  Id
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <Table>
+          <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
+            <TableRow>
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Id
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Symbol
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Date
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Action
+              </TableCell>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {economicCalender.map((item) => (
+              <TableRow key={item.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                  {item.id}
                 </TableCell>
 
-                <TableCell isHeader className="px-5 py-3 text-start">
-                  Symbol
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
+                  {item.symbol}
                 </TableCell>
 
-                <TableCell isHeader className="px-5 py-3 text-start">
-                  Date
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                  {item.date}
                 </TableCell>
 
-                <TableCell isHeader className="px-5 py-3 text-start">
-                  Action
+                <TableCell className="px-4 py-2.5 text-end">
+                  <div className="inline-flex items-center gap-1">
+                    <IconButton title="Edit" onClick={() => handleEdit(item)}>
+                      <PencilIcon />
+                    </IconButton>
+                    <IconButton
+                      title="Delete"
+                      variant="danger"
+                      onClick={() => setDeleteTarget(item)}
+                    >
+                      <TrashIcon />
+                    </IconButton>
+                  </div>
                 </TableCell>
               </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {economicCalender.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="px-4 py-3">
-                    {item.id}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-3">
-                    {item.symbol}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-3">
-                    {item.date}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-3 flex gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-blue-500 hover:bg-blue-600 text-white"
-                      onClick={() => handleEdit(item)}
-                    >
-                      Edit
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* UPDATE MODAL */}
@@ -236,10 +239,10 @@ const handleEdit = (item: Profile) => {
       <Modal
         isOpen={isOpen}
         onClose={closeModal}
-        className="max-w-[584px] p-5 lg:p-10"
+        className="max-w-[440px] p-5"
       >
-        <form onSubmit={handleUpdate} className="space-y-6">
-          <h4 className="text-lg font-medium text-gray-500 text-start dark:text-gray-400">
+        <form onSubmit={handleUpdate} className="space-y-5">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Update Economic Calendar
           </h4>
 
@@ -261,23 +264,31 @@ const handleEdit = (item: Profile) => {
             />
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2">
             <Button
+              size="sm"
               variant="outline"
               onClick={closeModal}
             >
               Cancel
             </Button>
 
-            <Button
-              className="bg-brand-500 hover:bg-brand-600 text-white"
-              disabled={saving}
-            >
+            <Button size="sm" disabled={saving}>
               {saving ? "Updating..." : "Update"}
             </Button>
           </div>
         </form>
       </Modal>
+
+      {/* ---------------- DELETE CONFIRM ---------------- */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Delete record?"
+        description={deleteTarget ? `This will permanently remove "${deleteTarget.symbol}".` : undefined}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+      />
     </>
   );
 }

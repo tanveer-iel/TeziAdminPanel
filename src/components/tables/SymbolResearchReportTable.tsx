@@ -10,10 +10,15 @@ import {
 } from "../ui/table";
 
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon, TrashIcon } from "../ui/button/icons";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
 import { Modal } from "../ui/modal";
+import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import Label from "../form/Label";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
+import Badge from "../ui/badge/Badge";
 
 interface SymbolResearch {
   id: number;
@@ -41,6 +46,13 @@ interface ModalProps {
   setValue: (value: boolean) => void;
 }
 
+const ratingBadgeColor = (rating: string | null) => {
+  if (rating === "BUY") return "success";
+  if (rating === "SELL") return "error";
+  if (rating === "HOLD") return "warning";
+  return "light";
+};
+
 export default function SymbolReseaerchReportTable({
   value,
   setValue,
@@ -53,6 +65,9 @@ export default function SymbolReseaerchReportTable({
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedResearch, setSelectedResearch] =
     useState<SymbolResearch | null>(null);
+
+  const [deleteTarget, setDeleteTarget] = useState<SymbolResearch | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   /* ================= EDIT STATES ================= */
 
@@ -104,12 +119,7 @@ export default function SymbolReseaerchReportTable({
   /* ================= DELETE ================= */
 
   const handleDelete = async (id: number) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this research report?"
-    );
-
-    if (!confirmDelete) return;
-
+    setDeleting(true);
     try {
       const { error } = await supabase
         .from("symbol_research")
@@ -126,6 +136,9 @@ export default function SymbolReseaerchReportTable({
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete research report");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -274,8 +287,8 @@ export default function SymbolReseaerchReportTable({
 
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading Research Reports...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={8} />
       </div>
     );
   }
@@ -284,7 +297,7 @@ export default function SymbolReseaerchReportTable({
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -294,7 +307,7 @@ export default function SymbolReseaerchReportTable({
 
   if (researchData.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No Research Reports found.
       </div>
     );
@@ -304,225 +317,160 @@ export default function SymbolReseaerchReportTable({
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="w-full overflow-x-auto">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <Table>
+          <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
+            <TableRow>
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Symbol
+              </TableCell>
 
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Symbol
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Case
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Key Risk
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Current Rating
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Current Price
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Previous Rating
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Document
+              </TableCell>
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Action
+              </TableCell>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {researchData.map((item) => (
+              <TableRow key={item.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+                {/* SYMBOL */}
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
+                  {item.symbol}
                 </TableCell>
 
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Case
-                </TableCell>
-
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Key Risk
-                </TableCell>
-
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Current Rating
-                </TableCell>
-
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Current Price
-                </TableCell>
-
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Previous Rating
-                </TableCell>
-
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Document
-                </TableCell>
-
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Action
-                </TableCell>
-
-              </TableRow>
-            </TableHeader>
-
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-
-              {researchData.map((item) => (
-
-                <TableRow key={item.id}>
-
-                  {/* SYMBOL */}
-                  <TableCell className="px-4 py-3 font-medium text-gray-800 dark:text-white">
-                    {item.symbol}
-                  </TableCell>
-
-                  {/* CASE */}
-                  <TableCell className="px-4 py-3 text-gray-500">
-                    <div className="max-w-[250px]">
-
-                      {item.case_points?.length ? (
-                        <ul className="list-disc pl-5 space-y-1">
-
-                          {item.case_points.map((point, index) => (
-                            <li key={index}>
-                              {point}
-                            </li>
-                          ))}
-
-                        </ul>
-                      ) : (
-                        "—"
-                      )}
-
-                    </div>
-                  </TableCell>
-
-                  {/* KEY RISK */}
-                  <TableCell className="px-4 py-3 text-gray-500">
-                    <div className="max-w-[220px]">
-                      {item.key_risk || "—"}
-                    </div>
-                  </TableCell>
-
-                  {/* CURRENT RATING */}
-                  <TableCell className="px-4 py-3">
-
-                    {item.current_rating ? (
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                          item.current_rating === "BUY"
-                            ? "bg-green-100 text-green-700"
-                            : item.current_rating === "SELL"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {item.current_rating}
-                      </span>
+                {/* CASE */}
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                  <div className="max-w-[220px]">
+                    {item.case_points?.length ? (
+                      <ul className="list-disc space-y-0.5 pl-4">
+                        {item.case_points.map((point, index) => (
+                          <li key={index}>{point}</li>
+                        ))}
+                      </ul>
                     ) : (
                       "—"
                     )}
+                  </div>
+                </TableCell>
 
-                    {item.current_rating_date && (
-                      <div className="mt-1 text-xs text-gray-400">
-                        {item.current_rating_date}
-                      </div>
-                    )}
+                {/* KEY RISK */}
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                  <div className="max-w-[200px]">{item.key_risk || "—"}</div>
+                </TableCell>
 
-                  </TableCell>
+                {/* CURRENT RATING */}
+                <TableCell className="px-4 py-2.5 text-start text-[12.5px]">
+                  {item.current_rating ? (
+                    <Badge size="sm" color={ratingBadgeColor(item.current_rating)}>
+                      {item.current_rating}
+                    </Badge>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400">—</span>
+                  )}
 
-                  {/* CURRENT PRICE */}
-                  <TableCell className="px-4 py-3 text-gray-500">
-                    {item.current_rating_price != null
-                      ? `PKR ${item.current_rating_price}`
-                      : "—"}
-                  </TableCell>
-
-                  {/* PREVIOUS */}
-                  <TableCell className="px-4 py-3 text-gray-500">
-
-                    {item.previous_rating || "—"}
-
-                    {item.previous_rating_period && (
-                      <div className="mt-1 text-xs text-gray-400">
-                        {item.previous_rating_period}
-                      </div>
-                    )}
-
-                    {item.previous_rating_price != null && (
-                      <div className="mt-1 text-xs text-gray-400">
-                        PKR {item.previous_rating_price}
-                      </div>
-                    )}
-
-                  </TableCell>
-
-                  {/* DOCUMENT */}
-                  <TableCell className="px-4 py-3">
-
-                    {item.document_url ? (
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          window.open(
-                            item.document_url!,
-                            "_blank"
-                          )
-                        }
-                        className="bg-blue-600 text-white hover:bg-blue-700"
-                      >
-                        Open PDF
-                      </Button>
-                    ) : (
-                      <span className="text-gray-400">
-                        No PDF
-                      </span>
-                    )}
-
-                    {item.document_title && (
-                      <div className="mt-1 max-w-[180px] truncate text-xs text-gray-400">
-                        {item.document_title}
-                      </div>
-                    )}
-
-                  </TableCell>
-
-                  {/* ACTION */}
-                  <TableCell className="px-4 py-3">
-
-                    <div className="flex gap-2">
-
-                      <Button
-                        size="sm"
-                        className="bg-blue-500 text-white hover:bg-blue-600"
-                        onClick={() => handleEdit(item)}
-                      >
-                        Edit
-                      </Button>
-
-                      <Button
-                        size="sm"
-                        className="bg-red-500 text-white hover:bg-red-600"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        Delete
-                      </Button>
-
+                  {item.current_rating_date && (
+                    <div className="mt-1 text-[12px] text-gray-400">
+                      {item.current_rating_date}
                     </div>
+                  )}
+                </TableCell>
 
-                  </TableCell>
+                {/* CURRENT PRICE */}
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                  {item.current_rating_price != null
+                    ? `PKR ${item.current_rating_price}`
+                    : "—"}
+                </TableCell>
 
-                </TableRow>
+                {/* PREVIOUS */}
+                <TableCell className="px-4 py-2.5 text-start text-[12.5px]">
+                  {item.previous_rating ? (
+                    <Badge size="sm" color={ratingBadgeColor(item.previous_rating)}>
+                      {item.previous_rating}
+                    </Badge>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400">—</span>
+                  )}
 
-              ))}
+                  {item.previous_rating_period && (
+                    <div className="mt-1 text-[12px] text-gray-400">
+                      {item.previous_rating_period}
+                    </div>
+                  )}
 
-            </TableBody>
-          </Table>
-        </div>
+                  {item.previous_rating_price != null && (
+                    <div className="mt-1 text-[12px] text-gray-400">
+                      PKR {item.previous_rating_price}
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* DOCUMENT */}
+                <TableCell className="px-4 py-2.5 text-start text-[12.5px]">
+                  {item.document_url ? (
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        window.open(item.document_url!, "_blank")
+                      }
+                    >
+                      Open PDF
+                    </Button>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400">No PDF</span>
+                  )}
+
+                  {item.document_title && (
+                    <div className="mt-1 max-w-[160px] truncate text-[12px] text-gray-400">
+                      {item.document_title}
+                    </div>
+                  )}
+                </TableCell>
+
+                {/* ACTION */}
+                <TableCell className="px-4 py-2.5 text-end">
+                  <div className="inline-flex items-center gap-1">
+                    <IconButton title="Edit" onClick={() => handleEdit(item)}>
+                      <PencilIcon />
+                    </IconButton>
+                    <IconButton
+                      title="Delete"
+                      variant="danger"
+                      onClick={() => setDeleteTarget(item)}
+                    >
+                      <TrashIcon />
+                    </IconButton>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* ================= EDIT MODAL ================= */}
@@ -532,13 +480,12 @@ export default function SymbolReseaerchReportTable({
         onClose={() => !updateLoading && setIsEditOpen(false)}
         className="max-w-[700px] p-5 lg:p-8 mt-[500px]"
       >
-
         <form
           onSubmit={handleUpdate}
           className="space-y-5"
         >
 
-          <h4 className="text-lg font-medium text-gray-800 dark:text-white">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Update Symbol Research
           </h4>
 
@@ -557,7 +504,7 @@ export default function SymbolReseaerchReportTable({
               }
               required
               disabled={updateLoading}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -580,10 +527,10 @@ export default function SymbolReseaerchReportTable({
 Strong revenue growth
 Improving margins
 Positive industry outlook`}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
 
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-[12px] text-gray-400">
               Enter each point on a new line.
             </p>
           </div>
@@ -603,7 +550,7 @@ Positive industry outlook`}
               disabled={updateLoading}
               rows={3}
               placeholder="Enter key risk"
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -622,7 +569,7 @@ Positive industry outlook`}
                   setEditCurrentRating(e.target.value)
                 }
                 disabled={updateLoading}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               >
                 <option value="">
                   Select Rating
@@ -652,7 +599,7 @@ Positive industry outlook`}
                 }
                 placeholder="e.g. 21 Aug 2026"
                 disabled={updateLoading}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               />
             </div>
 
@@ -670,7 +617,7 @@ Positive industry outlook`}
                 }
                 placeholder="e.g. 125.50"
                 disabled={updateLoading}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               />
             </div>
 
@@ -691,7 +638,7 @@ Positive industry outlook`}
                   setEditPreviousRating(e.target.value)
                 }
                 disabled={updateLoading}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               >
                 <option value="">
                   Select Rating
@@ -721,7 +668,7 @@ Positive industry outlook`}
                 }
                 placeholder="e.g. 3 months ago"
                 disabled={updateLoading}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               />
             </div>
 
@@ -739,7 +686,7 @@ Positive industry outlook`}
                 }
                 placeholder="e.g. 110.00"
                 disabled={updateLoading}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+                className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               />
             </div>
 
@@ -760,7 +707,7 @@ Positive industry outlook`}
               }
               placeholder="Enter document title"
               disabled={updateLoading}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -771,27 +718,29 @@ Positive industry outlook`}
               Replace PDF
             </Label>
 
-            <input
-              type="file"
-              accept="application/pdf"
-              disabled={updateLoading}
-              onChange={(e) =>
-                setEditPdf(
-                  e.target.files?.[0] || null
-                )
-              }
-              className="w-full text-sm text-gray-600"
-            />
+            <div className="rounded-md border border-dashed border-gray-300 p-3 dark:border-gray-700">
+              <input
+                type="file"
+                accept="application/pdf"
+                disabled={updateLoading}
+                onChange={(e) =>
+                  setEditPdf(
+                    e.target.files?.[0] || null
+                  )
+                }
+                className="block w-full text-[13px] text-gray-600 dark:text-gray-400"
+              />
+            </div>
 
             {selectedResearch?.document_url && !editPdf && (
-              <p className="mt-2 text-xs text-gray-400">
+              <p className="mt-1.5 text-[12px] text-gray-400">
                 Existing PDF will remain unchanged if you
                 don't select a new file.
               </p>
             )}
 
             {editPdf && (
-              <p className="mt-2 text-xs text-green-600">
+              <p className="mt-1.5 text-[12px] text-success-600">
                 New PDF selected: {editPdf.name}
               </p>
             )}
@@ -799,9 +748,10 @@ Positive industry outlook`}
 
           {/* BUTTONS */}
 
-          <div className="flex justify-end gap-3">
+          <div className="flex items-center justify-end gap-2">
 
             <Button
+              size="sm"
               variant="outline"
               onClick={() =>
                 setIsEditOpen(false)
@@ -812,8 +762,8 @@ Positive industry outlook`}
             </Button>
 
             <Button
+              size="sm"
               disabled={updateLoading}
-              className="bg-brand-500 text-white"
             >
               {updateLoading
                 ? "Updating..."
@@ -825,6 +775,16 @@ Positive industry outlook`}
         </form>
 
       </Modal>
+
+      {/* ---------------- DELETE CONFIRM ---------------- */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Delete research report?"
+        description={deleteTarget ? `This will permanently remove "${deleteTarget.symbol}".` : undefined}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+      />
     </>
   );
 }

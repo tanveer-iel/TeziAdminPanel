@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import ComponentCard from "../common/ComponentCard";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
@@ -90,8 +89,12 @@ export default function FinancialStatementModal({ setValue }:ModalProps) {
   };
 
   return (
-    <ComponentCard title="Add Financial Statement">
+    <>
       <Button size="sm" onClick={openModal}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
         Add Financial Statement
       </Button>
 
@@ -100,8 +103,8 @@ export default function FinancialStatementModal({ setValue }:ModalProps) {
         onClose={closeModal}
         className="max-w-[584px] p-5 lg:p-10"
       >
-        <form className="space-y-6">
-          <h2 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
+        <form className="space-y-5">
+          <h2 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Add Financial Statement
           </h2>
 
@@ -127,15 +130,7 @@ export default function FinancialStatementModal({ setValue }:ModalProps) {
               onChange={(e) => setTabTitle(e.target.value)}
               disabled={loading}
               required
-              className={`
-                w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 
-                text-gray-700 shadow-sm outline-none 
-                transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-200 
-                disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500
-                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 
-                dark:focus:border-primary-400 dark:focus:ring-primary-500/30
-                dark:disabled:bg-gray-700 dark:disabled:text-gray-400
-              `}
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
             >
               <option value="" disabled>
                 Select financial statement type
@@ -158,12 +153,12 @@ export default function FinancialStatementModal({ setValue }:ModalProps) {
               accept=".pdf"
               onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
               disabled={loading}
-              className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-gray-700 dark:file:text-gray-200"
+              className="w-full text-[13px] text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-[12.5px] file:font-medium file:text-gray-700 hover:file:bg-gray-200 dark:text-gray-400 dark:file:bg-white/[0.05] dark:file:text-gray-200"
               required
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 mt-6">
+          <div className="flex items-center justify-end gap-2">
             <Button
               variant="outline"
               onClick={closeModal}
@@ -182,6 +177,6 @@ export default function FinancialStatementModal({ setValue }:ModalProps) {
           </div>
         </form>
       </Modal>
-    </ComponentCard>
+    </>
   );
 }

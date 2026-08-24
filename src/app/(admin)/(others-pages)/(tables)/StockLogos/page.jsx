@@ -1,8 +1,6 @@
 "use client"
 import { useState } from "react";
-import ComponentCard from "../../../../../components/common/ComponentCard"
 import StockLogosTable from "@/components/tables/StockLogosTable";
-import BlogsModal from "../../../../../components/example/BlogsModal";
 import StockLogoModal from "@/components/example/StockLogoModal";
 import React from "react";
 
@@ -11,14 +9,12 @@ import React from "react";
 export default function BasicTables() {
   const [refresh,setRefresh]=useState(false)
   return (
-    <div>
-      <div className="space-y-6">
-         {/* <BlogsModal setValue={setRefresh}/> */}
-         <StockLogoModal setValue={setRefresh}/>
-        <ComponentCard title="Stock Logos">
-          <StockLogosTable value={refresh} setValue={setRefresh}/>
-        </ComponentCard>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-[17px] font-semibold text-gray-800 dark:text-white/90">Stock Logos</h1>
+        <StockLogoModal setValue={setRefresh}/>
       </div>
+      <StockLogosTable value={refresh} setValue={setRefresh}/>
     </div>
   );
 }

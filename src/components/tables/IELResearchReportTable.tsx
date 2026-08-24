@@ -10,11 +10,14 @@ import {
 } from "../ui/table";
 
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon, TrashIcon, FileIcon } from "../ui/button/icons";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
 import { Modal } from "../ui/modal";
+import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import Label from "../form/Label";
-import TextArea from "../form/input/TextArea";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 
 /* OLD TAB CONSTANT REMOVED (NOT NEEDED) */
 
@@ -48,6 +51,9 @@ export default function IELReseaerchReportTable({ value, setValue }: ModalProps)
   const [editSector, seteditSector] = useState("");
   const [editName, setEditName] = useState("");
   const [editpdf, seteditpdf] = useState<File | null>(null);
+
+  const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   /* ================= FETCH RESEARCH ================= */
   useEffect(() => {
@@ -95,9 +101,7 @@ export default function IELReseaerchReportTable({ value, setValue }: ModalProps)
 
   /* ================= DELETE ================= */
   const handleDelete = async (id: number | string) => {
-    const confirmDelete = confirm("Are you sure you want to delete this record?");
-    if (!confirmDelete) return;
-
+    setDeleting(true);
     try {
       const { error } = await supabase
         .from("research_iel")
@@ -111,6 +115,9 @@ export default function IELReseaerchReportTable({ value, setValue }: ModalProps)
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete record");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -168,18 +175,18 @@ const handleEdit = (item: Profile) => {
     }
   };
 
-  /* ================= UI STATES (UNCHANGED) ================= */
+  /* ================= UI STATES ================= */
   if (loading) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        Loading Finncial Statements...
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={4} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center text-red-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         {error}
       </div>
     );
@@ -187,7 +194,7 @@ const handleEdit = (item: Profile) => {
 
   if (BlogsData.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
         No Finncial Statements found.
       </div>
     );
@@ -195,64 +202,62 @@ const handleEdit = (item: Profile) => {
 
   return (
     <>
-      {/* ================= TABLE (UNCHANGED DESIGN) ================= */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="w-full">
-          <Table>
-            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-              <TableRow>
-                <TableCell isHeader  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Symbol</TableCell>
-                <TableCell isHeader  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Sector</TableCell>
-                <TableCell isHeader  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">PDF</TableCell>
-                <TableCell isHeader  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Action</TableCell>
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <Table>
+          <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
+            <TableRow>
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Symbol
+              </TableCell>
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Sector
+              </TableCell>
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
+                PDF
+              </TableCell>
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400">
+                Action
+              </TableCell>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {BlogsData.map((items) => (
+              <TableRow key={items.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
+                  {items.symbol}
+                </TableCell>
+                <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">
+                  {items.sector_name}
+                </TableCell>
+
+                <TableCell className="px-4 py-2.5">
+                  <IconButton title="Open PDF" onClick={() => window.open(items.pdf_url, "_blank")}>
+                    <FileIcon />
+                  </IconButton>
+                </TableCell>
+
+                <TableCell className="px-4 py-2.5 text-end">
+                  <div className="inline-flex items-center gap-1">
+                    <IconButton title="Edit" onClick={() => handleEdit(items)}>
+                      <PencilIcon />
+                    </IconButton>
+                    <IconButton
+                      title="Delete"
+                      variant="danger"
+                      onClick={() => setDeleteTarget(items)}
+                    >
+                      <TrashIcon />
+                    </IconButton>
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-
-            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {BlogsData.map((items) => (
-                <TableRow key={items.id}>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {items.symbol}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {items.sector_name}
-                  </TableCell>
-
-                  <TableCell className="px-4 py-3">
-                    <Button
-                      size="sm"
-                      onClick={() => window.open(items.pdf_url, "_blank")}
-                      className="text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                    >
-                      Open PDF
-                    </Button>
-                  </TableCell>
-
-                  <TableCell className="px-4 py-3 flex gap-2">
-                    <Button
-                      size="sm"
-                      className="bg-blue-500 hover:bg-blue-600 text-white"
-                      onClick={() => handleEdit(items)}
-                    >
-                      Edit
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      className="bg-red-500 hover:bg-red-600 text-white"
-                      onClick={() => handleDelete(items.id)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
-      {/* ================= MODAL (UNCHANGED DESIGN) ================= */}
+      {/* ================= EDIT MODAL ================= */}
       <Modal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
@@ -260,7 +265,7 @@ const handleEdit = (item: Profile) => {
       >
         <form onSubmit={handleUpdate} className="space-y-6">
 
-          <h4 className="text-lg font-medium text-gray-500 text-start dark:text-gray-400">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Update Research Report
           </h4>
 
@@ -273,13 +278,7 @@ const handleEdit = (item: Profile) => {
     type="text"
     value={editName}
     onChange={(e) => setEditName(e.target.value)}
-    className="
-      w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5
-      text-gray-700 shadow-sm outline-none
-      transition-all focus:border-primary-500 focus:ring-2
-      focus:ring-primary-200
-      dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200
-    "
+    className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
     required
   />
 </div>
@@ -289,15 +288,7 @@ const handleEdit = (item: Profile) => {
             <select
               value={editSector}
               onChange={(e) => seteditSector(e.target.value)}
-                className={`
-                w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 
-                text-gray-700 shadow-sm outline-none 
-                transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-200 
-                disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500
-                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 
-                dark:focus:border-primary-400 dark:focus:ring-primary-500/30
-                dark:disabled:bg-gray-700 dark:disabled:text-gray-400
-              `}
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
               required
             >
               <option value="" disabled>
@@ -320,25 +311,36 @@ const handleEdit = (item: Profile) => {
               onChange={(e) =>
                 seteditpdf(e.target.files?.[0] || null)
               }
-              className="w-full text-sm text-gray-600"
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2">
             <Button
+              size="sm"
               variant="outline"
               onClick={() => setIsEditOpen(false)}
             >
               Cancel
             </Button>
 
-            <Button className="bg-brand-500 text-white">
+            <Button size="sm">
               Update
             </Button>
           </div>
 
         </form>
       </Modal>
+
+      {/* ================= DELETE CONFIRM ================= */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Delete research report?"
+        description={deleteTarget ? `This will permanently remove "${deleteTarget.symbol}".` : undefined}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+      />
     </>
   );
 }

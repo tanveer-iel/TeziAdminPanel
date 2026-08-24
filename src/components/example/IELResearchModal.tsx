@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ComponentCard from "../common/ComponentCard";
 import Button from "../ui/button/Button";
 import { Modal } from "../ui/modal";
 import Label from "../form/Label";
@@ -104,8 +103,12 @@ export default function IELResearchModal({ setValue }: ModalProps) {
   };
 
   return (
-    <ComponentCard title="Add Research Report">
+    <>
       <Button size="sm" onClick={openModal}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
         Add Research Report
       </Button>
 
@@ -115,13 +118,13 @@ export default function IELResearchModal({ setValue }: ModalProps) {
         className="max-w-[584px] p-5 lg:p-10"
       >
         <form
-          className="space-y-6"
+          className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
             handleUpload();
           }}
         >
-          <h2 className="mb-6 text-lg font-medium text-gray-800 dark:text-white/90">
+          <h2 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">
             Add Research Report
           </h2>
 
@@ -137,14 +140,7 @@ export default function IELResearchModal({ setValue }: ModalProps) {
               onChange={(e) => setSymbol(e.target.value)}
               disabled={loading}
               placeholder="Enter symbol"
-              className="
-                w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5
-                text-gray-700 shadow-sm outline-none
-                transition-all focus:border-primary-500 focus:ring-2
-                focus:ring-primary-200 disabled:cursor-not-allowed
-                disabled:bg-gray-100 dark:border-gray-600
-                dark:bg-gray-800 dark:text-gray-200
-              "
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
           </div>
 
@@ -158,16 +154,7 @@ export default function IELResearchModal({ setValue }: ModalProps) {
               value={sectorName}
               onChange={(e) => setSectorName(e.target.value)}
               disabled={loading}
-              className="
-                w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5
-                text-gray-700 shadow-sm outline-none transition-all
-                focus:border-primary-500 focus:ring-2 focus:ring-primary-200
-                disabled:cursor-not-allowed disabled:bg-gray-100
-                disabled:text-gray-500 dark:border-gray-600
-                dark:bg-gray-800 dark:text-gray-200
-                dark:focus:border-primary-400
-                dark:focus:ring-primary-500/30
-              "
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             >
               <option value="">Select sector</option>
 
@@ -190,24 +177,17 @@ export default function IELResearchModal({ setValue }: ModalProps) {
               accept=".pdf"
               onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
               disabled={loading}
-              className="
-                w-full text-sm text-gray-600
-                file:mr-4 file:rounded file:border-0
-                file:bg-primary-50 file:px-4 file:py-2
-                file:text-sm file:font-semibold
-                file:text-primary-700 hover:file:bg-primary-100
-                dark:file:bg-gray-700 dark:file:text-gray-200
-              "
+              className="h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-[13px] text-gray-700 shadow-theme-xs outline-none focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
             />
 
             {pdfFile && (
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-1.5 text-[12.5px] text-gray-500 dark:text-gray-400">
                 Selected: {pdfFile.name}
               </p>
             )}
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-2">
             <Button
               variant="outline"
               onClick={closeModal}
@@ -217,12 +197,12 @@ export default function IELResearchModal({ setValue }: ModalProps) {
               Cancel
             </Button>
 
-            <Button  disabled={loading} size="sm">
+            <Button disabled={loading} size="sm">
               {loading ? "Uploading..." : "Submit"}
             </Button>
           </div>
         </form>
       </Modal>
-    </ComponentCard>
+    </>
   );
 }

@@ -9,9 +9,13 @@ import {
   TableRow,
 } from "../ui/table";
 import Button from "../ui/button/Button";
+import IconButton from "../ui/button/IconButton";
+import { PencilIcon, TrashIcon } from "../ui/button/icons";
 import { Modal } from "../ui/modal";
+import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
+import { TableSkeleton } from "../ui/skeleton/Skeleton";
 import supabase from "../../../SupabaseConfig";
 import { toast } from "sonner";
 
@@ -37,6 +41,9 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
   const [editSymbol, setEditSymbol] = useState("");
   const [editImage, setEditImage] = useState<File | null>(null);
 
+  const [deleteTarget, setDeleteTarget] = useState<StockLogo | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     async function fetchLogos() {
       try {
@@ -61,8 +68,7 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
   }, [value]); // Re-fetch when parent triggers refresh
 
   const handleDelete = async (id: number | string) => {
-    if (!confirm("Are you sure you want to delete this record?")) return;
-
+    setDeleting(true);
     try {
       const { error } = await supabase
         .from("stocklogos")
@@ -76,6 +82,9 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
     } catch (err) {
       console.error("Delete error:", err);
       toast.error("Failed to delete record");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -129,58 +138,77 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500">Loading Stock Logos...</div>;
-  if (error) return <div className="p-8 text-center text-red-500">{error}</div>;
-  if (logosData.length === 0) return <div className="p-8 text-center text-gray-500">No stock logos found.</div>;
+  // ---------------- UI STATES ----------------
+  if (loading) {
+    return (
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <TableSkeleton rows={7} cols={3} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-error-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        {error}
+      </div>
+    );
+  }
+
+  if (logosData.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-[13px] text-gray-500 dark:border-white/[0.05] dark:bg-white/[0.03]">
+        No stock logos found.
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <Table>
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+          <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
             <TableRow>
-              <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Image
               </TableCell>
-              <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Symbol
               </TableCell>
-           
-              <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+
+              <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-end text-[11px] uppercase tracking-wide dark:text-gray-400">
                 Action
               </TableCell>
             </TableRow>
           </TableHeader>
 
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+          <TableBody>
             {logosData.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="px-4 py-3">
+              <TableRow key={item.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+                <TableCell className="px-4 py-2.5">
                   <img
                     src={item.img_url}
                     alt={item.symbol}
-                    className="w-[50px] h-[50px] object-contain rounded"
+                    className="h-8 w-8 rounded-md object-contain border border-gray-100 dark:border-white/[0.05]"
                   />
                 </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400 font-medium">
+                <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">
                   {item.symbol}
                 </TableCell>
-               
-                <TableCell className="px-4 py-3 flex gap-2">
-                  <Button
-                    size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => handleEdit(item)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    className="bg-red-500 hover:bg-red-600 text-white"
-                    onClick={() => handleDelete(item.id)}
-                  >
-                    Delete
-                  </Button>
+
+                <TableCell className="px-4 py-2.5 text-end">
+                  <div className="inline-flex items-center gap-1">
+                    <IconButton title="Edit" onClick={() => handleEdit(item)}>
+                      <PencilIcon />
+                    </IconButton>
+                    <IconButton
+                      title="Delete"
+                      variant="danger"
+                      onClick={() => setDeleteTarget(item)}
+                    >
+                      <TrashIcon />
+                    </IconButton>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -194,8 +222,8 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
         onClose={() => setIsEditOpen(false)}
         className="max-w-[584px] p-5 lg:p-10"
       >
-        <form onSubmit={handleUpdate} className="space-y-6">
-          <h4 className="text-lg font-medium text-gray-500 dark:text-gray-400">Update Stock Logo</h4>
+        <form onSubmit={handleUpdate} className="space-y-5">
+          <h4 className="text-[15px] font-semibold text-gray-800 dark:text-white/90">Update Stock Logo</h4>
 
           {/* Symbol */}
           <div>
@@ -214,7 +242,7 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
               <img
                 src={selectedLogo.img_url}
                 alt="Current"
-                className="w-32 h-32 object-contain mt-2 border rounded-lg"
+                className="mt-2 h-16 w-16 rounded-md object-contain border border-gray-200 dark:border-white/[0.05]"
               />
             </div>
           )}
@@ -222,29 +250,41 @@ export default function StockLogosTable({ value, setValue }: ModalProps) {
           {/* New Image Upload */}
           <div>
             <Label>Change Image (optional)</Label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setEditImage(e.target.files?.[0] || null)}
-              className="mt-1 block w-full text-gray-600 dark:text-gray-400"
-            />
-            <p className="text-xs text-gray-500 mt-1">Leave empty to keep current image</p>
+            <div className="mt-1 rounded-md border border-dashed border-gray-300 p-3 dark:border-gray-700">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setEditImage(e.target.files?.[0] || null)}
+                className="block w-full text-[13px] text-gray-600 dark:text-gray-400"
+              />
+            </div>
+            <p className="mt-1 text-[12px] text-gray-500">Leave empty to keep current image</p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex items-center justify-end gap-2">
             <Button
+              size="sm"
               variant="outline"
-            
               onClick={() => setIsEditOpen(false)}
             >
               Cancel
             </Button>
-            <Button  className="bg-brand-500 text-white">
+            <Button size="sm">
               Update
             </Button>
           </div>
         </form>
       </Modal>
+
+      {/* ---------------- DELETE CONFIRM ---------------- */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Delete stock logo?"
+        description={deleteTarget ? `This will permanently remove "${deleteTarget.symbol}".` : undefined}
+        loading={deleting}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget.id)}
+      />
     </>
   );
 }
