@@ -26,6 +26,7 @@ interface WithdrawRequest {
   status:string;
   created_at: string;
  username?: string; //
+ request_id:string;
 }
 
 interface ModalProps {
@@ -187,6 +188,7 @@ const getStatusStyle = (status: string) => {
       <Table>
         <TableHeader className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.05] dark:bg-white/[0.02]">
           <TableRow>
+            <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Request ID</TableCell>
             <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">User Name</TableCell>
             <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Client Code</TableCell>
             <TableCell isHeader className="px-4 py-2.5 font-semibold text-gray-500 text-start text-[11px] uppercase tracking-wide dark:text-gray-400">Bank Name</TableCell>
@@ -202,6 +204,7 @@ const getStatusStyle = (status: string) => {
         <TableBody>
           {requests.map((item) => (
             <TableRow key={item.id} className="border-b border-gray-100 last:border-0 dark:border-white/[0.04] hover:bg-gray-50/60 dark:hover:bg-white/[0.02]">
+              <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">{item.request_id || "-"}</TableCell>
               <TableCell className="px-4 py-2.5 font-medium text-gray-800 text-start text-[13px] dark:text-white/90">{item.username || "-"}</TableCell>
               <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{item.clientcode}</TableCell>
               <TableCell className="px-4 py-2.5 text-gray-500 text-start text-[12.5px] dark:text-gray-400">{item.bank_name}</TableCell>
