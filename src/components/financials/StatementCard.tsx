@@ -10,6 +10,7 @@ interface StatementCardProps {
   periods: StatementPeriod[];
   loading: boolean;
   error: string | null;
+  periodType: "yearly" | "quarterly";
 }
 
 interface MatrixRow {
@@ -55,7 +56,7 @@ function formatValue(value: number | null | undefined): string {
   });
 }
 
-function EmptyState({ title }: { title: string }) {
+function EmptyState({ title, periodType }: { title: string; periodType: "yearly" | "quarterly" }) {
   return (
     <div className="flex flex-col items-center gap-2 p-10 text-center">
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-white/[0.05] dark:text-gray-500">
@@ -69,7 +70,8 @@ function EmptyState({ title }: { title: string }) {
         Not available from the vendor yet
       </p>
       <p className="max-w-xs text-[12.5px] text-gray-500 dark:text-gray-400">
-        The data provider hasn&apos;t supplied {title.toLowerCase()} figures for this symbol. Try
+        The data provider hasn&apos;t supplied {periodType} {title.toLowerCase()} figures for this
+        symbol{periodType === "quarterly" ? " — this vendor may only report yearly data" : ""}. Try
         &quot;Refresh from Vendor&quot;, or check back later.
       </p>
     </div>
@@ -144,7 +146,7 @@ function MatrixTable({ periods }: { periods: StatementPeriod[] }) {
   );
 }
 
-export default function StatementCard({ title, icon, periods, loading, error }: StatementCardProps) {
+export default function StatementCard({ title, icon, periods, loading, error, periodType }: StatementCardProps) {
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-3 dark:border-white/[0.05]">
@@ -159,7 +161,7 @@ export default function StatementCard({ title, icon, periods, loading, error }: 
       ) : error ? (
         <ErrorState message={error} />
       ) : periods.length === 0 ? (
-        <EmptyState title={title} />
+        <EmptyState title={title} periodType={periodType} />
       ) : (
         <MatrixTable periods={periods} />
       )}

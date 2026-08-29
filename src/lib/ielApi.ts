@@ -33,6 +33,7 @@ export interface StatementResponse {
 }
 
 export type StatementKind = "income" | "balance" | "cashflow";
+export type PeriodType = "yearly" | "quarterly";
 
 const PROXY_BASE = "/api/iel";
 
@@ -65,9 +66,13 @@ export function fetchAllStocks() {
   return getJson<AllStocksResponse>("/search/all-stocks");
 }
 
-export function fetchStatement(statement: StatementKind, symbol: string) {
+export function fetchStatement(
+  statement: StatementKind,
+  symbol: string,
+  periodType: PeriodType = "yearly"
+) {
   return getJson<StatementResponse>(
-    `/financials/${statement}?symbol=${encodeURIComponent(symbol)}&period_type=yearly`
+    `/financials/${statement}?symbol=${encodeURIComponent(symbol)}&period_type=${periodType}`
   );
 }
 

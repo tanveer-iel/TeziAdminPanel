@@ -14,6 +14,7 @@ import {
   cleanStatementPeriods,
   StockListItem,
   StatementPeriod,
+  PeriodType,
 } from "@/lib/ielApi";
 
 const STOCK_CACHE_KEY = "iel_all_stocks_cache_v1";
@@ -51,6 +52,7 @@ export default function FinancialsExplorer() {
   const [stocksLoading, setStocksLoading] = useState(true);
 
   const [symbol, setSymbol] = useState("");
+  const [periodType, setPeriodType] = useState<PeriodType>("yearly");
   const [income, setIncome] = useState<StatementState>(initialStatementState);
   const [balance, setBalance] = useState<StatementState>(initialStatementState);
   const [cashflow, setCashflow] = useState<StatementState>(initialStatementState);
@@ -103,15 +105,15 @@ export default function FinancialsExplorer() {
     loadStocks();
   }, []);
 
-  const loadStatements = useCallback(async (sym: string) => {
+  const loadStatements = useCallback(async (sym: string, period: PeriodType) => {
     setIncome({ periods: [], loading: true, error: null });
     setBalance({ periods: [], loading: true, error: null });
     setCashflow({ periods: [], loading: true, error: null });
 
     const [incomeRes, balanceRes, cashflowRes] = await Promise.allSettled([
-      fetchStatement("income", sym),
-      fetchStatement("balance", sym),
-      fetchStatement("cashflow", sym),
+      fetchStatement("income", sym, period),
+      fetchStatement("balance", sym, period),
+      fetchStatement("cashflow", sym, period),
     ]);
 
     if (incomeRes.status === "fulfilled") {
@@ -135,9 +137,9 @@ export default function FinancialsExplorer() {
 
   useEffect(() => {
     if (symbol) {
-      loadStatements(symbol);
+      loadStatements(symbol, periodType);
     }
-  }, [symbol, loadStatements]);
+  }, [symbol, periodType, loadStatements]);
 
   const handleRefresh = async () => {
     if (!symbol) return;
@@ -161,7 +163,7 @@ export default function FinancialsExplorer() {
         toast.success(`Requested a fresh vendor pull for ${symbol}.`);
       }
 
-      await loadStatements(symbol);
+      await loadStatements(symbol, periodType);
     } finally {
       setRefreshing(false);
       setConfirmRefresh(false);
@@ -195,6 +197,23 @@ export default function FinancialsExplorer() {
           </div>
         )}
 
+        <div className="inline-flex rounded-md border border-gray-200 bg-gray-50 p-0.5 dark:border-white/[0.05] dark:bg-white/[0.03]">
+          {(["yearly", "quarterly"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => setPeriodType(option)}
+              className={`rounded-[5px] px-3 py-1.5 text-[12.5px] font-medium capitalize transition ${
+                periodType === option
+                  ? "bg-white text-brand-600 shadow-theme-xs dark:bg-gray-900 dark:text-brand-400"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+
         <button
           type="button"
           onClick={() => setConfirmRefresh(true)}
@@ -220,6 +239,7 @@ export default function FinancialsExplorer() {
             periods={income.periods}
             loading={income.loading}
             error={income.error}
+            periodType={periodType}
           />
           <StatementCard
             title="Balance Sheet"
@@ -227,6 +247,7 @@ export default function FinancialsExplorer() {
             periods={balance.periods}
             loading={balance.loading}
             error={balance.error}
+            periodType={periodType}
           />
           <StatementCard
             title="Cash Flow Statement"
@@ -234,6 +255,7 @@ export default function FinancialsExplorer() {
             periods={cashflow.periods}
             loading={cashflow.loading}
             error={cashflow.error}
+            periodType={periodType}
           />
         </div>
       )}
