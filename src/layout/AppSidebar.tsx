@@ -27,6 +27,7 @@ import {
   PaperPlaneIcon,
   ShootingStarIcon,
   BellIcon,
+  GridIcon,
 } from "../icons/index";
 
 type NavItem = {
@@ -41,6 +42,10 @@ type NavGroup = {
   key: string;
   items: NavItem[];
 };
+
+const topLevelItems: NavItem[] = [
+  { name: "Financials Explorer", icon: <GridIcon />, path: "/Financials_Explorer" },
+];
 
 const navGroups: NavGroup[] = [
   {
@@ -293,6 +298,8 @@ const AppSidebar: React.FC = () => {
       </div>
       <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar px-3 py-4">
         <nav className="flex flex-col gap-4">
+          <div>{renderMenuItems({ label: "", key: "standalone", items: topLevelItems })}</div>
+          <div className="border-t border-gray-200 dark:border-gray-800" />
           {navGroups.map((group) => {
             const isCollapsed = showLabels && collapsedGroups[group.key];
             return (
