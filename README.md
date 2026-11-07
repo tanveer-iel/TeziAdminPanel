@@ -25,13 +25,13 @@ Built on the open-source [TailAdmin Next.js](https://tailadmin.com) template (MI
 
 **Users & Requests**: Users, Withdrawal Requests, Raast IDs, Contact messages.
 
-**Market Data**: Sectors, Sectors (IEL), Banks, Stock Logos, Research Report, Symbol Research Report, Research Report (IEL), IEL Info, IEL Timing, Economic Calendar, Financial Statements (PDF uploads by period).
+**Market Data**: Sectors, Sectors (IEL), Banks, Stock Logos, Research Report, Symbol Research Report, Research Report (IEL), IEL Info, IEL Timing, Economic Calendar, Financial Statements (PDF uploads grouped by financial year, July to June).
 
 **Content**: Blogs, News, Marketing banner, Notifications (sent through a Supabase Edge Function).
 
 **Communication**: AI Chat history.
 
-Common to the table pages: search, pagination, skeleton loading states, create/edit modals, delete confirmation dialogs, toast feedback, and dark mode.
+Common to the table pages: search, pagination, skeleton loading states, create/edit modals, delete confirmation dialogs, toast feedback, and dark mode. The Financial Statements page is the exception: it has search but shows one collapsible section per financial year instead of pages.
 
 Authentication is Supabase email/password. Every page under `app/(admin)` is guarded in `src/app/(admin)/layout.tsx` and redirects to `/signin` without a session.
 
@@ -54,6 +54,7 @@ npm run dev          # http://localhost:3000 (runs next dev --webpack)
 | `npm run cf:build` | Build for Cloudflare (OpenNext) |
 | `npm run cf:preview` | Build and preview locally on the Workers runtime |
 | `npm run cf:deploy` | Build and deploy to Cloudflare |
+| `node --test scripts/test-financial-year.mjs` | Unit tests for the financial-year helpers (Node 22.18+) |
 
 ## Project layout
 
@@ -74,14 +75,15 @@ src/
   context/                   Sidebar and theme providers
   hooks/                     useTableSearch, useModal, useGoBack
   layout/                    AppSidebar, AppHeader, Backdrop
-  lib/                       IEL API client and config
+  lib/                       IEL API client and config, financial-year helpers
+scripts/                     Unit tests
 SupabaseConfig.jsx           Shared Supabase client (repo root)
 DevDocs/                     Developer documentation
 ```
 
 ## Configuration
 
-The Supabase URL and anon key are currently hard-coded in `SupabaseConfig.jsx`, and the IEL API base URL in `src/lib/ielApiConfig.ts`. There is no `.env` setup yet. See the Developer's Guide, section "Configuration and secrets", for details and recommendations.
+`SupabaseConfig.jsx` reads `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. When they are not set it falls back to the live project, so production builds need no extra setup. To work against another project, such as a local Supabase stack, put the two variables in `.env.local` (git-ignored). The IEL API base URL is still hard-coded in `src/lib/ielApiConfig.ts`. See the Developer's Guide, section "Configuration and secrets".
 
 ## Deployment
 
