@@ -104,7 +104,7 @@ SupabaseConfig.jsx   (repo root) shared Supabase client
 | `/IelInfo` | `IELInfoTable` | `iel_info` |
 | `/IelTiming` | `IELTimingTable` | `iel_timing` |
 | `/economic_calender` | `EconomicsTable` | `economic_calender` |
-| `/Finanicial_sttaements` | `FinancialsStatementTable` | `finanicial_statements`, Storage `Images` |
+| `/Finanicial_sttaements` | `FinancialsStatementTable` | `finanicial_statements`, `financial_years`, Storage `PDF Files` (see "Financial Statements" below) |
 | `/Blogs` | `BlogsTable` | `blogs`, Storage `Images` |
 | `/News` | `NewsTable` | `news`, Storage `Images` |
 | `/banner` | `BannerTable` | `marketing_banner` |
@@ -217,6 +217,15 @@ Route `/Financials_Explorer`; components in `src/components/financials/`.
 - "Refresh from Vendor" asks for confirmation, then calls `triggerFinancialsDump` and `triggerCashflowFetch` in parallel and reloads the statements.
 - `StatementCard` renders one statement; `StockSearchSelect` is the searchable symbol picker.
 
+## 9a. Financial Statements (financial years)
+
+Route `/Finanicial_sttaements`; table in `src/components/tables/FinancialsStatementTable.tsx`, add form in `src/components/example/FinanicialStatementModal.tsx`.
+
+- **Financial year** runs July to June and is named after the year it starts in (`FY 2026-27` = 1 Jul 2026 to 30 Jun 2027). The pure helpers are in `src/lib/financialYear.ts`: reading the year from a description, Current/Previous choice, and `fyMonthPosition` (July = 1 ... June = 12). They are unit tested: `node --test scripts/test-financial-year.mjs`.
+- **Database.** `financial_years` (`label` unique, `start_date`, `end_date`) and a nullable `finanicial_statements.financial_year_id` linking to it. `ensureFinancialYear()` in `src/lib/financialYearDb.ts` finds or creates the year row. **This schema must exist in the Supabase project before this code is deployed**, together with row-level security: signed-in users read years; only `public.is_iel_admin()` (an email allow-list, starting with `iel@admin.com`) may insert, update or delete statements and create years. Without those policies saving fails with "new row violates row-level security policy".
+- **Layout.** One collapsible section per year, newest year first; inside a year the latest month is first (June at the top, July at the bottom, documents with no month last). The month is read from the description, then the tab. Statements with no year are shown under "Unassigned" with an "Assign financial years" banner.
+- **Files.** PDFs go to the `PDF Files` bucket as `<timestamp>-<original name>`; nothing else is added to the name. When an edit replaces the PDF, or a statement is deleted, the old file is removed from storage after the database change succeeds, unless another statement still points to it (`src/lib/financialStatementFiles.ts`). Removal failures are logged and never fail the save.
+
 ## 10. Styling and theming
 
 - Tailwind CSS v4: configuration is CSS-first in `src/app/globals.css` (`@theme` block defines the font, breakpoints and the `brand`, `gray`, `error`, ... colour scales). There is no `tailwind.config.js`.
@@ -226,17 +235,17 @@ Route `/Financials_Explorer`; components in `src/components/financials/`.
 
 ## 11. Configuration and secrets
 
-Currently there is **no environment-variable configuration**:
-
 | Value | Location |
 | --- | --- |
-| Supabase URL and anon key | `SupabaseConfig.jsx` (hard-coded) |
-| Edge function URL | `FormInModal.tsx`, `FormModal.tsx` (hard-coded) |
+| Supabase URL and anon key | `SupabaseConfig.jsx`: `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`, falling back to the live project when unset |
+| Edge function URL | Built from the Supabase URL in `FormInModal.tsx` and `FormModal.tsx` (`SupabaseUrl` exported by `SupabaseConfig.jsx`) |
 | IEL API base URL | `src/lib/ielApiConfig.ts` (hard-coded) |
 
-The Supabase **anon** key is designed to be public, so committing it is not itself a leak, but it means all security depends on RLS policies being correct. Never commit a `service_role` key or any other secret. `.gitignore` already ignores `.env*.local`.
+**Pointing the panel at another Supabase project** (for example a local `supabase start` stack): create `.env.local` with the two `NEXT_PUBLIC_SUPABASE_*` variables and restart `npm run dev`. The file is git-ignored through `.env*.local`; delete it to go back to the live project. Production builds do not read it, so they keep using the live fallback. The variables must be read as literal `process.env.NEXT_PUBLIC_...` expressions, or Next.js will not inline them.
 
-Recommended direction: move these to `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `IEL_API_BASE_URL`, read them in the same files, and set them in `.env.local` and in the Cloudflare project settings. If you do, update this section and the README.
+The Supabase **anon** key is designed to be public, so committing it is not itself a leak, but it means all security depends on RLS policies being correct. Never commit a `service_role` key or any other secret.
+
+The IEL API base URL could move to an `IEL_API_BASE_URL` variable the same way. If you do, update this section and the README.
 
 ## 12. Build, deploy and Cloudflare
 
