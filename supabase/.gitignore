@@ -1,0 +1,8 @@
+# Local-only files: never commit
+dumps/
+storage-backup/
+.temp/
+.branches/
+.dbpass
+*.bak
+snippets/

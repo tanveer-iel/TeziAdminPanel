@@ -1,0 +1,24 @@
+-- ROLLBACK for the financial-years and admin-RLS changes.
+-- Saved as .sql.txt on purpose so it is never run by `supabase db push`.
+-- Rename to .sql, or paste into the SQL editor, only if you need to undo.
+--
+-- Effects:
+--   * Admin uploads stop working again (the insert policy is removed).
+--   * Every statement's financial-year link is lost (the column is dropped).
+--   * No statement row is deleted or edited. The existing read policy is untouched.
+--   * The backup copy (backup.finanicial_statements_20261107) is left in place.
+
+begin;
+set local lock_timeout = '5s';
+
+drop policy if exists "finanicial_statements_admin_insert" on public.finanicial_statements;
+drop policy if exists "finanicial_statements_admin_update" on public.finanicial_statements;
+drop policy if exists "finanicial_statements_admin_delete" on public.finanicial_statements;
+
+drop index if exists public.finanicial_statements_financial_year_id_idx;
+alter table public.finanicial_statements drop column if exists financial_year_id;
+
+drop table if exists public.financial_years;   -- its policies go with it
+drop function if exists public.is_iel_admin();
+
+commit;
