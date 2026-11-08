@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Cloudflare/OpenNext build output:
     ".open-next/**",
     ".wrangler/**",
+    // Local Supabase project (Deno Edge Functions, SQL) is not part of the Next app:
+    "supabase/**",
   ]),
 ]);
 

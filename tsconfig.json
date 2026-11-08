@@ -36,6 +36,8 @@
     ".next/dev/types/**/*.ts"
 , "src/app/(admin)/(others-pages)/(tables)/Reseach_Report/page.jsx"  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "supabase",
+    "Guides"
   ]
 }
