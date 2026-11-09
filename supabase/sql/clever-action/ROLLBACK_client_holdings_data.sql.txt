@@ -1,0 +1,5 @@
+-- Rollback for 20261109000000_client_holdings_data.sql  (.txt on purpose: not run by accident)
+-- WARNING: deletes every holding stored in client_holdings_data.
+-- Does not touch client_portfolio_data (the snapshot summary) or anything else.
+drop table if exists public.client_holdings_data;
+notify pgrst, 'reload schema';
