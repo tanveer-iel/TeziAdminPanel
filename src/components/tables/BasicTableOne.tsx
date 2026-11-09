@@ -15,6 +15,7 @@ import ConfirmDialog from "../ui/modal/ConfirmDialog";
 import TableSearchBar from "../ui/table/TableSearchBar";
 import TableFooter from "../ui/table/TableFooter";
 import { useTableSearch } from "../../hooks/useTableSearch";
+import { useAdminAccess } from "@/context/AdminAccessContext";
 
 interface Profile {
   id: number | string;         
@@ -41,10 +42,13 @@ export default function BasicTableOne() {
   const [profiles, setProfiles] = useState<ProfileWithCodes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const { access } = useAdminAccess();
+  const isSuper = !!access?.is_super;
   const [updatingId, setUpdatingId] = useState<number | string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{
     profile: ProfileWithCodes;
-    type: "account" | "block";
+    type: "account" | "relink" | "block";
   } | null>(null);
 
   const PAGE_SIZE = 10;
@@ -154,6 +158,32 @@ export default function BasicTableOne() {
     }
   };
 
+
+  // Super Admin only: restores the Linked state for a customer who still has a saved client code.
+  const relinkAccount = async (profile: ProfileWithCodes) => {
+    setUpdatingId(profile.id);
+    setActionError(null);
+    try {
+      const { error: fnError } = await supabase.functions.invoke("admin-users", {
+        body: { action: "relink", user_id: String(profile.id) },
+      });
+      if (fnError) {
+        let msg = fnError.message;
+        try {
+          const ctx = (fnError as { context?: Response }).context;
+          if (ctx) msg = (await ctx.json())?.error ?? msg;
+        } catch { /* keep default message */ }
+        throw new Error(msg);
+      }
+      setProfiles((prev) => prev.map((p) => (p.id === profile.id ? { ...p, account: true } : p)));
+    } catch (err) {
+      console.error("Re-link error:", err);
+      setActionError(err instanceof Error ? err.message : "Could not re-link this account.");
+    } finally {
+      setUpdatingId(null);
+      setConfirmTarget(null);
+    }
+  };
 
  const toggleAccountStatus = async (profile: Profile) => {
   const newAccountStatus = !profile.account;
@@ -279,6 +309,11 @@ console.log(data, error);
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <TableSearchBar value={search} onChange={setSearch} placeholder="Search users…" />
+      {actionError && (
+        <div className="mx-4 mb-2 rounded-lg bg-error-50 px-3 py-2 text-[12.5px] text-error-600 dark:bg-error-500/10 dark:text-error-400">
+          {actionError}
+        </div>
+      )}
 
       {filteredCount === 0 ? (
         <div className="p-8 text-center text-[13px] text-gray-500">
@@ -329,8 +364,22 @@ console.log(data, error);
               {/* Account Status */}
               <TableCell className="px-4 py-2.5 text-start">
                 <button
-                  onClick={() => setConfirmTarget({ profile, type: "account" })}
-                  disabled={updatingId === profile.id || profile.account === false} // Disable if updating or already unlinked
+                  onClick={() =>
+                    setConfirmTarget({ profile, type: profile.account ? "account" : "relink" })
+                  }
+                  disabled={
+                    updatingId === profile.id ||
+                    (!profile.account && (!isSuper || profile.clientCodes.length === 0))
+                  }
+                  title={
+                    profile.account
+                      ? "Unlink this account"
+                      : !isSuper
+                      ? "Only a Super Admin can re-link"
+                      : profile.clientCodes.length === 0
+                      ? "No saved client code: the customer must link again from the mobile app"
+                      : "Re-link this account"
+                  }
                   className={`focus:outline-none transition-all ${
                     updatingId === profile.id
                       ? "opacity-50 cursor-not-allowed"
@@ -398,18 +447,18 @@ console.log(data, error);
         isOpen={!!confirmTarget}
         variant={
           confirmTarget?.type === "account"
-            ? confirmTarget.profile.account
-              ? "danger"
-              : "default"
+            ? "danger"
+            : confirmTarget?.type === "relink"
+            ? "default"
             : confirmTarget?.profile.block
             ? "default"
             : "danger"
         }
         title={
           confirmTarget?.type === "account"
-            ? confirmTarget.profile.account
-              ? "Unlink this account?"
-              : "Link this account?"
+            ? "Unlink this account?"
+            : confirmTarget?.type === "relink"
+            ? "Re-link this account?"
             : confirmTarget?.profile.block
             ? "Unblock this user?"
             : "Block this user?"
@@ -417,9 +466,9 @@ console.log(data, error);
         description={
           confirmTarget
             ? confirmTarget.type === "account"
-              ? confirmTarget.profile.account
-                ? `This will unlink "${confirmTarget.profile.full_name || confirmTarget.profile.email}" and remove their client codes.`
-                : `This will re-link "${confirmTarget.profile.full_name || confirmTarget.profile.email}".`
+              ? `This will unlink "${confirmTarget.profile.full_name || confirmTarget.profile.email}" and permanently delete their saved client code and trading password. They would have to link again from the mobile app. This cannot be undone.`
+              : confirmTarget.type === "relink"
+              ? `This will mark "${confirmTarget.profile.full_name || confirmTarget.profile.email}" as linked again, using the client code they still have saved (${confirmTarget.profile.clientCodes.join(", ")}).`
               : confirmTarget.profile.block
               ? `This will unblock "${confirmTarget.profile.full_name || confirmTarget.profile.email}", allowing them to sign in again.`
               : `This will block "${confirmTarget.profile.full_name || confirmTarget.profile.email}" from signing in.`
@@ -427,13 +476,14 @@ console.log(data, error);
         }
         confirmLabel={
           confirmTarget?.type === "account"
-            ? confirmTarget.profile.account
-              ? "Unlink"
-              : "Link"
+            ? "Unlink"
+            : confirmTarget?.type === "relink"
+            ? "Re-link"
             : confirmTarget?.profile.block
             ? "Unblock"
             : "Block"
         }
+        requireText={confirmTarget?.type === "account" ? confirmTarget.profile.email : undefined}
         loading={!!confirmTarget && updatingId === confirmTarget.profile.id}
         onCancel={() => setConfirmTarget(null)}
         onConfirm={() => {
@@ -441,6 +491,8 @@ console.log(data, error);
           const { profile, type } = confirmTarget;
           if (type === "account") {
             toggleAccountStatus(profile);
+          } else if (type === "relink") {
+            relinkAccount(profile);
           } else {
             toggleBlockStatus(profile);
           }

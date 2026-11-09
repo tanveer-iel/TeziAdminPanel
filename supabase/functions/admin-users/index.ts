@@ -140,6 +140,31 @@ serve(async (req) => {
       return json({ ok: true });
     }
 
+    // Re-link a customer whose app account was un-linked in the panel. Only works while the
+    // customer still has a saved client code (ClientCode row): it cannot recreate one, because
+    // the trading password is stored encrypted by the app.
+    if (b.action === "relink") {
+      if (!b.user_id) return json({ error: "user_id required" }, 400);
+      const { count } = await admin
+        .from("ClientCode")
+        .select("id", { count: "exact", head: true })
+        .eq("userId", b.user_id);
+      if (!count) {
+        return json({ error: "No saved client code. The customer must link again from the mobile app." }, 409);
+      }
+      const { error: pErr } = await admin
+        .from("profiles")
+        .update({ account: true, status: "linked" })
+        .eq("id", b.user_id);
+      if (pErr) return json({ error: pErr.message }, 400);
+      const { data: u } = await admin.auth.admin.getUserById(b.user_id);
+      const { error: mErr } = await admin.auth.admin.updateUserById(b.user_id, {
+        user_metadata: { ...(u?.user?.user_metadata ?? {}), status: "linked" },
+      });
+      if (mErr) return json({ error: mErr.message }, 400);
+      return json({ ok: true });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
