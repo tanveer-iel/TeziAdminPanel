@@ -1,0 +1,7 @@
+-- Rollback for 20261110000000_portfolio_sync.sql  (.txt on purpose: not run by accident)
+-- WARNING: deletes the market-day log and the latest-state tables. History tables
+-- (client_portfolio_data, client_holdings_data) are NOT touched.
+drop table if exists public.client_holdings_latest;
+drop table if exists public.client_portfolio_latest;
+drop table if exists public.market_days;
+notify pgrst, 'reload schema';
