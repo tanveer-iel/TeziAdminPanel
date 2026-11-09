@@ -9,8 +9,9 @@ import {  EyeCloseIcon, EyeIcon } from "../../icons";
 import React, { useState, useEffect } from "react";
 import supabase from "../../../SupabaseConfig";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function SignInForm() {
+export default function SignInForm({ notice }: { notice?: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -133,6 +134,12 @@ export default function SignInForm() {
                   </div>
                 </div>
 
+                {notice === "password-updated" && !error && (
+                  <div className="rounded-lg bg-success-50 px-3 py-2 text-center text-sm text-success-700 dark:bg-success-500/10 dark:text-success-400">
+                    Password updated. Sign in with your new password.
+                  </div>
+                )}
+
                 {error && (
                   <div className="text-sm text-error-500 text-center">
                     {error}
@@ -148,13 +155,12 @@ export default function SignInForm() {
                     </span>
                   </div> */}
 
-                  {/* Uncomment if you have a forgot password page */}
-                  {/* <Link
-                    href="/reset-password"
-                    className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                  <Link
+                    href="/forgot-password"
+                    className="ml-auto hidden text-sm text-brand-500 hover:text-brand-600 md:inline dark:text-brand-400"
                   >
                     Forgot password?
-                  </Link> */}
+                  </Link>
                 </div>
 
                 <div>

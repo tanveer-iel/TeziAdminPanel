@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   description: "Sign in to the Tezi admin panel",
 };
 
-export default function SignIn() {
-  return <SignInForm />;
+export default async function SignIn({
+  searchParams,
+}: {
+  searchParams: Promise<{ notice?: string }>;
+}) {
+  const { notice } = await searchParams;
+  return <SignInForm notice={notice} />;
 }
