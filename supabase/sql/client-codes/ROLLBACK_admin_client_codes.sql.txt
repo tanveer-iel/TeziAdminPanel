@@ -1,0 +1,4 @@
+-- Rollback for 20261111000000_admin_client_codes.sql  (.txt on purpose: not run by accident)
+-- The Users page then shows "No codes" for every customer again. No data is touched.
+drop function if exists public.admin_client_codes();
+notify pgrst, 'reload schema';

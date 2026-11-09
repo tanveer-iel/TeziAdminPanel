@@ -26,14 +26,6 @@ interface Profile {
   full_name: string;
 }
 
-interface ClientCode {
-  id: number;
-  cliendCode: string;     // Note: typo in your column name
-  Password: string;
-  userId: string;         // This is UUID
-  created_at: string;
-}
-
 interface ProfileWithCodes extends Profile {
   clientCodes: string[];
 }
@@ -80,22 +72,21 @@ export default function BasicTableOne() {
           (p) => p.email !== "iel@admin.com"
         );
 
-        // Fetch all client codes
-        const { data: clientCodesData, error: codesError } = await supabase
-          .from("ClientCode")
-          .select("*")
-          .order("id", { ascending: true });
+        // Fetch every customer's client code. The ClientCode table only lets a user read their own row, so
+        // staff go through admin_client_codes(): a Super Admin / "users"-menu function that returns
+        // (user_id, client_code) only, never the saved trading password.
+        const { data: clientCodesData, error: codesError } = await supabase.rpc("admin_client_codes");
 
         if (codesError) throw codesError;
 
         // Create a Map: userId (UUID) → list of client codes
         const clientCodeMap = new Map<string, string[]>();
 
-        (clientCodesData || []).forEach((code: ClientCode) => {
-          if (!clientCodeMap.has(code.userId)) {
-            clientCodeMap.set(code.userId, []);
+        (clientCodesData || []).forEach((row: { user_id: string; client_code: string }) => {
+          if (!clientCodeMap.has(row.user_id)) {
+            clientCodeMap.set(row.user_id, []);
           }
-          clientCodeMap.get(code.userId)!.push(code.cliendCode);
+          clientCodeMap.get(row.user_id)!.push(row.client_code);
         });
 
         // Attach client codes to each profile
@@ -361,18 +352,21 @@ console.log(data, error);
                 {profile.email}
               </TableCell>
 
-              {/* Account Status */}
+              {/* Account Status. Rule: an account is Linked only while it has a saved client code. */}
               <TableCell className="px-4 py-2.5 text-start">
+                {(() => {
+                  const isLinked = profile.account && profile.clientCodes.length > 0;
+                  return (
                 <button
                   onClick={() =>
-                    setConfirmTarget({ profile, type: profile.account ? "account" : "relink" })
+                    setConfirmTarget({ profile, type: isLinked ? "account" : "relink" })
                   }
                   disabled={
                     updatingId === profile.id ||
-                    (!profile.account && (!isSuper || profile.clientCodes.length === 0))
+                    (!isLinked && (!isSuper || profile.clientCodes.length === 0 || profile.account))
                   }
                   title={
-                    profile.account
+                    isLinked
                       ? "Unlink this account"
                       : !isSuper
                       ? "Only a Super Admin can re-link"
@@ -386,14 +380,16 @@ console.log(data, error);
                       : "cursor-pointer hover:opacity-80"
                   }`}
                 >
-                  <Badge size="sm" color={profile.account ? "success" : "error"}>
+                  <Badge size="sm" color={isLinked ? "success" : "error"}>
                     {updatingId === profile.id
                       ? "Updating..."
-                      : profile.account
+                      : isLinked
                       ? "Linked"
                       : "Unlinked"}
                   </Badge>
                 </button>
+                  );
+                })()}
               </TableCell>
 
               {/* User Status */}
