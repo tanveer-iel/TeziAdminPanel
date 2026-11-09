@@ -7,12 +7,19 @@ import Backdrop from "@/layout/Backdrop";
 import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import supabase from "../../../SupabaseConfig";
+import { AdminAccessProvider, useAdminAccess } from "@/context/AdminAccessContext";
+import { ADMIN_USERS_PATH, canAccessPath, homePath } from "@/lib/adminMenus";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminAccessProvider>
+      <AdminShell>{children}</AdminShell>
+    </AdminAccessProvider>
+  );
+}
+
+function AdminShell({ children }: { children: React.ReactNode }) {
+  const { access, loading: accessLoading, error: accessError } = useAdminAccess();
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
   const router = useRouter();
@@ -40,10 +47,6 @@ useEffect(() => {
     if (!session) {
       router.replace("/signin");
     } else {
-      // ✅ Only redirect if not already on /Users
-      if (pathname === "/") {
-        router.replace("/Users");
-      }
     }
 
       setTimeout(() => {
@@ -67,8 +70,41 @@ useEffect(() => {
   };
 }, [router, pathname]);
 
+  // Role-based routing: send people to their first permitted page, block the rest.
+  const denied =
+    !!access?.role &&
+    (pathname === "/" ||
+      (pathname.toLowerCase() === ADMIN_USERS_PATH.toLowerCase() && !access.is_super) ||
+      !canAccessPath(access, pathname));
+  useEffect(() => {
+    if (!accessLoading && denied) router.replace(homePath(access));
+  }, [accessLoading, denied, access, router]);
+
+  if (!loading && !accessLoading && (accessError || (access && !access.role))) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50 p-6">
+        <div className="max-w-md rounded-lg bg-white p-6 text-center shadow">
+          <h1 className="mb-2 text-lg font-semibold text-gray-800">No access</h1>
+          <p className="mb-4 text-sm text-gray-600">
+            {accessError ??
+              "This account has not been given access to the admin panel. Ask the Super Admin to add you."}
+          </p>
+          <button
+            className="rounded bg-brand-500 px-4 py-2 text-sm text-white"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              router.replace("/signin");
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // ⏳ Prevent UI flicker before auth check
-if (loading) {
+if (loading || accessLoading || denied) {
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50">
       <div className="flex flex-col items-center gap-4">

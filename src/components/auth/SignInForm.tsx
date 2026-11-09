@@ -27,7 +27,7 @@ export default function SignInForm() {
       if (event === "SIGNED_IN" && session) {
       
         router.refresh();
-        router.push("/Users/"); 
+        router.push("/"); // layout routes to the first page this role may open 
       }
     });
 

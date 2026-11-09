@@ -4,6 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
+import { useAdminAccess } from "../context/AdminAccessContext";
+import { ADMIN_USERS_PATH, MENUS, canSeeMenu, homePath } from "../lib/adminMenus";
 import {
   CalenderIcon,
   ChevronDownIcon,
@@ -95,6 +97,23 @@ const navGroups: NavGroup[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { access } = useAdminAccess();
+
+  // Only show menus this role holds; hide groups that end up empty.
+  const allowedPaths = new Set(
+    MENUS.filter((m) => canSeeMenu(access, m.key)).map((m) => m.path)
+  );
+  const visibleTop = topLevelItems.filter((i) => i.path && allowedPaths.has(i.path));
+  const visibleGroups: NavGroup[] = navGroups
+    .map((g) => ({ ...g, items: g.items.filter((i) => i.path && allowedPaths.has(i.path)) }))
+    .filter((g) => g.items.length > 0);
+  if (access?.is_super) {
+    visibleGroups.push({
+      label: "Administration",
+      key: "admin",
+      items: [{ name: "Admin Users & Roles", icon: <UserCircleIcon />, path: ADMIN_USERS_PATH }],
+    });
+  }
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     group: string;
@@ -265,7 +284,7 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center lg:px-0" : "justify-start"
         }`}
       >
-        <Link href="/Users" className="flex items-center gap-2">
+        <Link href={homePath(access)} className="flex items-center gap-2">
           {showLabels ? (
             <>
               <Image
@@ -298,9 +317,13 @@ const AppSidebar: React.FC = () => {
       </div>
       <div className="flex flex-col flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar px-3 py-4">
         <nav className="flex flex-col gap-4">
-          <div>{renderMenuItems({ label: "", key: "standalone", items: topLevelItems })}</div>
-          <div className="border-t border-gray-200 dark:border-gray-800" />
-          {navGroups.map((group) => {
+          {visibleTop.length > 0 && (
+            <>
+              <div>{renderMenuItems({ label: "", key: "standalone", items: visibleTop })}</div>
+              <div className="border-t border-gray-200 dark:border-gray-800" />
+            </>
+          )}
+          {visibleGroups.map((group) => {
             const isCollapsed = showLabels && collapsedGroups[group.key];
             return (
               <div key={group.key}>

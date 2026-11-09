@@ -1,0 +1,23 @@
+-- Rollback for 20261108000000_admin_roles.sql  (.txt on purpose: not run by accident)
+-- Removes only what that script added. Leaves is_iel_admin() and all data tables untouched.
+-- Policies on tables you do not own may need the owning role; "if exists" keeps it harmless.
+
+do $$
+begin
+  begin drop policy if exists "fin_stmts_role_insert" on public.finanicial_statements;
+        drop policy if exists "fin_stmts_role_update" on public.finanicial_statements;
+        drop policy if exists "fin_stmts_role_delete" on public.finanicial_statements;
+  exception when insufficient_privilege then raise notice 'not owner of finanicial_statements: policies left'; end;
+  begin drop policy if exists "fin_years_role_insert" on public.financial_years;
+  exception when insufficient_privilege then raise notice 'not owner of financial_years: policy left'; end;
+end
+$$;
+
+-- Dropping the tables removes their policies and trigger too.
+drop table if exists public.admin_users;
+drop table if exists public.admin_roles;
+
+drop function if exists public.protect_system_roles();
+drop function if exists public.can_edit_financials();
+drop function if exists public.get_my_access();
+drop function if exists public.is_super_admin();
