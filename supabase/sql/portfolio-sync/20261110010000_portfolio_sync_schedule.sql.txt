@@ -1,39 +1,42 @@
--- Schedules for the portfolio-sync Edge Function (pg_cron + pg_net). Saved as .txt on purpose:
--- NOT run automatically. Edit the two values marked <<...>>, then paste into the SQL editor.
--- pg_cron uses UTC. Pakistan (PKT) = UTC+5.
+-- Schedules for the portfolio-sync Edge Function (pg_cron + pg_net). No Vault needed.
+-- Saved as .txt on purpose: NOT run automatically. Edit the three values marked <<...>>, then paste
+-- into the SQL editor. pg_cron uses UTC. Pakistan (PKT) = UTC+5.
+--
+-- Before running, set the function's secret (any long random text, keep a copy):
+--     supabase secrets set CRON_SECRET=<<CRON_SECRET>>        and redeploy: supabase functions deploy portfolio-sync
+-- The database stores only this secret and the public anon key, NOT the service-role key. The secret
+-- is accepted by portfolio-sync only, so if it leaks, change it and redeploy.
 --
 -- Local:  FUNCTION_URL = http://kong:8000/functions/v1/portfolio-sync   (database -> container network)
 -- Live :  FUNCTION_URL = https://bfxmfaakufrmzcxhtgfw.supabase.co/functions/v1/portfolio-sync
--- SERVICE KEY = the project's service_role key (Dashboard -> Project Settings -> API). It is stored in
--- Vault (encrypted), not inside the job text.
+-- ANON_KEY = the project's anon (public) key, Dashboard -> Project Settings -> API.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;
 
-select vault.create_secret('<<SERVICE_ROLE_KEY>>', 'portfolio_sync_key')
- where not exists (select 1 from vault.secrets where name = 'portfolio_sync_key');
-select vault.create_secret('<<FUNCTION_URL>>', 'portfolio_sync_url')
- where not exists (select 1 from vault.secrets where name = 'portfolio_sync_url');
-
 create or replace function public.portfolio_sync_call(p_mode text)
 returns bigint language sql security definer set search_path = '' as $$
   select net.http_post(
-    url     := (select decrypted_secret from vault.decrypted_secrets where name = 'portfolio_sync_url'),
-    headers := jsonb_build_object('Content-Type', 'application/json',
-               'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'portfolio_sync_key')),
+    url     := '<<FUNCTION_URL>>',
+    headers := jsonb_build_object(
+                 'Content-Type', 'application/json',
+                 'Authorization', 'Bearer <<ANON_KEY>>',
+                 'x-cron-secret', '<<CRON_SECRET>>'),
     body    := jsonb_build_object('mode', p_mode),
     timeout_milliseconds := 120000);
 $$;
+-- The function text holds the secret: only database admins may run or read it.
 revoke all on function public.portfolio_sync_call(text) from public, anon, authenticated;
 
 -- 11:00 PKT Mon-Fri: is the exchange trading today?
-select cron.schedule('portfolio-sync-probe',  '0 6 * * 1-5',    $$select public.portfolio_sync_call('probe')$$);
+select cron.schedule('portfolio-sync-probe',  '0 6 * * 1-5',       $$select public.portfolio_sync_call('probe')$$);
 -- every 30 min, 11:00-15:30 PKT Mon-Fri: refresh clients with a live trading session (needs probe = open)
 select cron.schedule('portfolio-sync-active', '*/30 6-10 * * 1-5', $$select public.portfolio_sync_call('active')$$);
 -- end of day: Mon-Thu closes 15:30 -> 16:00 PKT; Friday closes 16:30 -> 17:00 PKT. All clients.
-select cron.schedule('portfolio-sync-eod',    '0 11 * * 1-4',   $$select public.portfolio_sync_call('eod')$$);
-select cron.schedule('portfolio-sync-eod-fri','0 12 * * 5',     $$select public.portfolio_sync_call('eod')$$);
+select cron.schedule('portfolio-sync-eod',    '0 11 * * 1-4',      $$select public.portfolio_sync_call('eod')$$);
+select cron.schedule('portfolio-sync-eod-fri','0 12 * * 5',        $$select public.portfolio_sync_call('eod')$$);
 
 -- See / remove:
 --   select jobid, jobname, schedule from cron.job;
 --   select cron.unschedule('portfolio-sync-probe'); (same for the other three names)
+--   drop function public.portfolio_sync_call(text);

@@ -30,7 +30,7 @@ snapshot from the previous trading day as its baseline.**
 | File | Purpose |
 |---|---|
 | `20261110000000_portfolio_sync.sql` | Tables `market_days`, `client_portfolio_latest`, `client_holdings_latest`, read policies, Realtime. Run after `20261109000000_client_holdings_data.sql` |
-| `20261110010000_portfolio_sync_schedule.sql.txt` | Cron jobs. Edit two values first |
+| `20261110010000_portfolio_sync_schedule.sql.txt` | Cron jobs (no Vault needed). Edit three values first |
 | `ROLLBACK_portfolio_sync.sql.txt` | Drops the three new tables |
 | `supabase/functions/portfolio-sync/index.ts` | The function |
 
@@ -48,7 +48,8 @@ snapshot from the previous trading day as its baseline.**
 1. Backup. Run `20261110000000_portfolio_sync.sql`.
 2. `supabase functions deploy portfolio-sync` (project `bfxmfaakufrmzcxhtgfw`).
 3. Test once: `{"mode":"client","clientCode":"10058"}` with the service key.
-4. Run the schedule file with the live URL and key. Leave the old `clever-action` schedule running for a
+4. `supabase secrets set CRON_SECRET=<long random text>`, then run the schedule file with the live URL, the anon
+   key and that same secret (the service-role key is not stored in the database). Leave the old `clever-action` schedule running for a
    week, check that `client_portfolio_latest` fills and `market_days` has rows, then unschedule the old job.
 
 ## Tested locally (client 10058, 9 Nov 2026)

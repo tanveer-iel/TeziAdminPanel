@@ -8,7 +8,8 @@
 //   probe  : daily ~11:00 PKT (cron). Decides if the exchange is trading today -> market_days.
 //   active : during market hours (cron). Refreshes clients with a live trading session.
 //   eod    : after close (cron). Refreshes ALL clients and always saves a history snapshot.
-//   probe/active/eod need the service-role key (cron). Fails open: if unsure, treat the day as open.
+//   probe/active/eod need the service-role key OR the header `x-cron-secret: <CRON_SECRET>` (the schedule uses the
+//   secret, so the service-role key never has to be stored in the database). Fails open: if unsure, treat the day as open.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
@@ -20,6 +21,7 @@ const PKT_OFFSET_MS = 5 * 3600 * 1000
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+const CRON_SECRET = Deno.env.get("CRON_SECRET") ?? "" // set with: supabase secrets set CRON_SECRET=...
 const db = createClient(SUPABASE_URL, SERVICE_KEY)
 
 const json = (body: unknown, status = 200) =>
@@ -178,7 +180,8 @@ serve(async (req) => {
     let body: any = {}
     try { body = await req.json() } catch (_) { /* empty */ }
     const mode = body?.mode ?? "client"
-    const privileged = token !== "" && token === SERVICE_KEY
+    const cronOk = CRON_SECRET !== "" && req.headers.get("x-cron-secret") === CRON_SECRET
+    const privileged = cronOk || (token !== "" && token === SERVICE_KEY)
     const today = pktDate()
 
     if (mode === "client") {
